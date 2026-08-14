@@ -1735,6 +1735,63 @@ Evidence packs are mandatory for Tier 2+ approvals. Tier 0–1 pilots may use a 
 
 ---
 
+## Automating Evidence Collection and Enforcement
+
+Manual evidence packs are a point-in-time artifact: they show what was true on approval day. MCP servers, their tools, and the agents connected to them change faster than review cycles. The gap between "evidence collected at approval" and "what is actually running in production" is where governance debt accumulates. This section describes how to make evidence collection continuous and enforcement machine-checked, so the four governance rules hold between reviews, not just during them.
+
+### Why automate
+
+| Manual-only problem | What happens in practice | Automated answer |
+| ------------------- | ------------------------ | ---------------- |
+| Evidence decays | A Tier 3 server is approved with full logs; a new tool is added in week 3 and the logs no longer capture it | Continuous inventory diffs re-flag the server for re-review |
+| Enforcement is aspirational | "No logging = No production use" is policy text; nobody checks whether logging is actually on | Runtime health checks gate production traffic on log presence |
+| Attribution is weak | SIEM shows a tool call but not which agent, which user, and which approval record authorized it | Structured evidence records carry user/agent/tool/action/approval fields at capture time |
+| Reviews are event-driven | Re-review happens only after an incident, not on a risk-based cadence | Review scheduler driven by tier, tool changes, and dependency drift |
+
+### What to automate: the four rules as enforcement points
+
+| Governance rule | Automated enforcement point | Evidence produced |
+| --------------- | --------------------------- | ----------------- |
+| No owner = No approval | Intake form blocks submission until owner and scope fields are populated; registry rejects ownerless servers | Intake record with owner, approver, and timestamp |
+| No logging = No production use | Connection gate checks that the server emits structured logs; production traffic is denied when log stream is absent or stale | Log presence check result, captured at connect and periodically |
+| No scope definition = No access | Tool manifest is compared against declared scope at connect time; out-of-scope tools are blocked or quarantined | Scope comparison result and any policy violations |
+| No review = No enterprise deployment | Review scheduler fires per tier cadence; overdue reviews suspend new connections | Review status history with due dates and outcomes |
+
+### Evidence quality requirements for audit-grade automation
+
+Automated collection only helps if the evidence it produces survives scrutiny. Design the evidence store to meet these properties:
+
+- **Append-only**: records can be added but not edited or deleted in place; corrections are new records referencing the original.
+- **Tamper-evident**: records are linked so that altering an earlier record is detectable (for example, chained hashes over a monotonically increasing sequence).
+- **Attributed**: every record identifies the user, agent, tool, action, and the approval record that authorized it.
+- **Time-synchronized**: timestamps come from a consistent clock source so event ordering is defensible.
+- **Machine-readable and exportable**: evidence can be produced as structured data for auditors, not only as a dashboard.
+
+The Evidence Pack table in the previous section remains the content standard; automation changes how those artifacts are produced (continuously, from the systems themselves) rather than what they contain. The Logging sample artifact, for instance, becomes a live export of the last N captured events with full attribution, rather than a hand-copied excerpt.
+
+### Worked example: Tier 3 GitHub server with automated evidence
+
+Scenario (fictional): an organization approves a GitHub MCP server at Tier 3 (write-capable) with a 30-day conditional approval. The condition is full MCP-level audit logging. Manual follow-up would require an AppSec reviewer to ask the team for log samples in 30 days. With automation:
+
+1. At connect, the server registers in the central MCP registry and the owner field is validated (Rule 1).
+2. A connection gate inspects the server's tool manifest against the declared scope (Rule 3); a newly added admin tool is detected on day 4 and the server is moved to "pending re-review" with new connections suspended.
+3. Runtime capture records each tool call with user/agent/tool/action/approval attribution; the log stream is health-checked hourly (Rule 2).
+4. The review scheduler opens a re-review on day 30; the AppSec reviewer sees a complete evidence pack assembled automatically: tool inventory diff, captured events, scope comparison, and log presence history.
+
+The reviewer's job shifts from "gather evidence" to "judge evidence". That is the point of automation: governance time spent on collection is time not spent on analysis.
+
+### Relationship to existing controls
+
+This section extends controls already in the Formal Control Catalog:
+
+- **MCP-08 (Lack of Audit and Telemetry)**: the logging sample and SIEM integration requirements are the foundation; automation makes them continuously verifiable.
+- **MCP-13 (Tool output treated as untrusted input)**: output-handling review artifacts are captured the same continuous way as other evidence, so the optional review does not expire between cycles.
+- **MCP-04 (Supply chain)**: SBOM and dependency CVE scans are re-run on a schedule and appended to the evidence pack, so version drift is visible rather than assumed unchanged.
+
+Organizations with an existing GRC or audit platform can treat these records as evidence sources; the framework does not prescribe a specific tool. The requirement is that evidence is produced continuously, attributed, and tamper-evident, regardless of where it is stored.
+
+---
+
 ## Client and Host Governance
 
 MCP architecture includes MCP Host, MCP Client, and MCP Server. Govern all three, not only the server.
