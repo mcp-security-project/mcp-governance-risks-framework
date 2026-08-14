@@ -1765,7 +1765,7 @@ Where annotations do work is as the **check**, not the input. Compare the declar
 
 - **Declared read-only, observed write**: the annotation says read-only but the tool performs a state-changing call; the connection gate blocks or quarantines it.
 - **Declared scope, observed tool drift**: the manifest declares a narrow scope but a new tool appears outside it; the registry flags the delta and moves the server to pending re-review.
-- **Declared bound, observed unmutated contract**: a tool declares an effect bound that is never enforced by an actual contract mutation; the gap is recorded as a measurement finding rather than accepted on faith.
+- **Declared bound, contract since mutated**: an annotation that was accurate at declaration time is stale once the contract it was bound to changes underneath it; a binding that no longer holds is the measurement finding, and it is the case that pairs with the review-scheduling gate. (The healthy baseline is the mirror image: 59.3 percent of tools still hold an annotation bound to a contract that has not changed since it was declared.)
 
 This declared-versus-observed comparison is machine-checkable and does not require trusting the declaring party. It turns the same evidence-decay problem the appendix is built around into a continuous signal one layer lower: the manifest is the expectation, the observed tool behavior is the fact, and governance acts on the delta.
 
