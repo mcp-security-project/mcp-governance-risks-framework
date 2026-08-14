@@ -1757,6 +1757,18 @@ Manual evidence packs are a point-in-time artifact: they show what was true on a
 | No scope definition = No access | Tool manifest is compared against declared scope at connect time; out-of-scope tools are blocked or quarantined | Scope comparison result and any policy violations |
 | No review = No enterprise deployment | Review scheduler fires per tier cadence; overdue reviews suspend new connections | Review status history with due dates and outcomes |
 
+### Declared versus observed: annotations are checks, not evidence
+
+Tool manifests and effect annotations (for example, a `readOnlyHint` or a declared scope) are convenient enforcement inputs, but they are not trustworthy evidence by themselves. MCP clients MUST treat tool annotations as untrusted unless they come from a trusted server, so an enforcement point that reads a declared hint and acts on it is consuming attacker-controllable input to decide how far to trust the attacker. That is circular: scoring trust from the thing whose trust is in question.
+
+Where annotations do work is as the **check**, not the input. Compare the declared annotation against what the contract actually does, and treat the disagreement as the finding:
+
+- **Declared read-only, observed write**: the annotation says read-only but the tool performs a state-changing call; the connection gate blocks or quarantines it.
+- **Declared scope, observed tool drift**: the manifest declares a narrow scope but a new tool appears outside it; the registry flags the delta and moves the server to pending re-review.
+- **Declared bound, observed unmutated contract**: a tool declares an effect bound that is never enforced by an actual contract mutation; the gap is recorded as a measurement finding rather than accepted on faith.
+
+This declared-versus-observed comparison is machine-checkable and does not require trusting the declaring party. It turns the same evidence-decay problem the appendix is built around into a continuous signal one layer lower: the manifest is the expectation, the observed tool behavior is the fact, and governance acts on the delta.
+
 ### Evidence quality requirements for audit-grade automation
 
 Automated collection only helps if the evidence it produces survives scrutiny. Design the evidence store to meet these properties:
