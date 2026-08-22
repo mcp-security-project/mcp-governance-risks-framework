@@ -485,8 +485,8 @@ Tool approval is a point-in-time decision, while discovered tool definitions can
 - Store a deterministic hash of the complete approved tool definition
 - Compare refreshed definitions with the approved baseline
 - Treat changes to descriptions, schemas, annotations, execution metadata, or other model-facing fields as material until reviewed
-- Suspend the affected tool or server when material drift is detected
-- Record the active definition hash with invocation evidence
+- Suspend the affected tool or server through the host, client, gateway, or available administrative control when material drift is detected
+- Record the observed definition hash and include the active hash with invocation evidence when the telemetry collection point supports it
 
 See [Tool definition baseline and drift handling](#tool-definition-baseline-and-drift-handling) for the operational workflow.
 
@@ -1111,7 +1111,9 @@ Changes trigger re-classification (Chapter 5) and may require re-approval.
 
 At approval time, retain the complete tool definition and a deterministic hash for every tool. Include the tool name, description, input schema, output schema, annotations, execution metadata, and any other field presented to the model or used by policy. Use a documented canonical serialization so harmless JSON field ordering does not create false drift.
 
-For each observation, record the server inventory entry, retrieval time, protocol revision, complete definition, canonicalization version, and resulting hash. Compare the observed hash with the approved baseline before making a changed definition available to the model.
+For each observation, record the server inventory entry, retrieval time, protocol revision, complete definition, canonicalization version, and resulting hash. Where the client, host, or gateway supports inline enforcement, compare the observed hash with the approved baseline before making a changed definition available to the model.
+
+Inline blocking is not a universal MCP capability. Where no enforcement hook exists, treat hash comparison as a detective control, document the collection point and maximum detection interval, and disable the affected tool or connection through the available administrative path when drift is found. Do not describe the control as preventive unless the comparison occurs before the changed definition reaches the model.
 
 Treat the following as review triggers:
 
@@ -1839,6 +1841,8 @@ Forward these fields to SIEM for Tier 2+ servers (align with [Principle 5](#prin
 
 - `timestamp`, `user_id`, `agent_session_id`, `mcp_host`, `mcp_server`, `tool_name`, `tool_definition_hash`, `parameters_redacted`, `outcome`, `authorization_result`, `source_ip`
 
+`tool_definition_hash` requires collection at a client, host, gateway, or other point that can associate the active definition with an invocation. If that field is unavailable, document the telemetry gap and retain observation hashes in the inventory for periodic comparison.
+
 ### Detection use cases
 
 
@@ -1848,7 +1852,7 @@ Forward these fields to SIEM for Tier 2+ servers (align with [Principle 5](#prin
 | Cross-tool exfiltration pattern | Read from sensitive source followed by write/send within same session | Alert; suspend agent session pending review |
 | Auth failure spike              | Repeated audience or scope validation failures                        | Alert; block server pending investigation   |
 | Privileged tool after hours     | Tier 4 tool invocation outside business hours                         | Alert owner and AppSec                      |
-| Tool definition drift           | Active tool has no approved hash or differs from its approved baseline | Alert; suspend affected tool or server pending re-review |
+| Tool definition drift           | Active tool has no approved hash or differs from its approved baseline | Alert; block inline where supported, otherwise disable through the available administrative path pending re-review |
 
 
 ### MCP incident response playbook (summary)
