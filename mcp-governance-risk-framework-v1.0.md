@@ -469,6 +469,27 @@ Tool chaining is the highest-priority MCP attack pattern for most organizations.
 - Monitor for unusual cross-tool workflows
 - Treat tool chaining as a scoring and classification input, not an edge case (see [Chapter 6](#tool-chaining-adjustment))
 
+### **Tool definition drift (rug pull)**
+
+Tool approval is a point-in-time decision, while discovered tool definitions can change. A server can keep the same tool name and later change its description, input or output schema, annotations, or other model-facing metadata. The model then sees and acts on a definition that was never reviewed.
+
+**Attack flow:**
+
+1. A tool is approved with a narrow description and schema
+2. The server later changes the definition without changing the tool name
+3. The client refreshes its tool list and exposes the changed definition to the model
+4. The model selects or invokes the tool under capabilities or instructions that were not part of the approval
+
+**Governance response:**
+
+- Store a deterministic hash of the complete approved tool definition
+- Compare refreshed definitions with the approved baseline
+- Treat changes to descriptions, schemas, annotations, execution metadata, or other model-facing fields as material until reviewed
+- Suspend the affected tool or server when material drift is detected
+- Record the active definition hash with invocation evidence
+
+See [Tool definition baseline and drift handling](#tool-definition-baseline-and-drift-handling) for the operational workflow.
+
 ### **1. Prompt Injection via Tool Output**
 
 Prompt injection via tool output has two distinct paths. Both can trigger unauthorized actions when read and write MCP servers share an agent session.
@@ -522,7 +543,7 @@ The payload does not exploit a software vulnerability in the MCP server. It expl
 
 - Classify by highest-risk tool, not server name
 - Require separate MCP servers for read vs. write vs. admin where possible
-- Re-classify when new tools are added to an existing server ([OWASP MCP02: Privilege Escalation via Scope Creep](https://owasp.org/www-project-mcp-top-10/))
+- Re-classify when tools are added or existing definitions change materially ([OWASP MCP02: Privilege Escalation via Scope Creep](https://owasp.org/www-project-mcp-top-10/))
 
 ### **3. Shadow MCP Servers**
 
@@ -648,7 +669,7 @@ The owner is typically a business or technical lead who:
 - Understands the use case and can explain why the server exists
 - Can accept residual risk for their domain (Tier 0–2) or escalate to CISO (Tier 3–4)
 - Ensures security reviews happen and controls are maintained over time
-- Reports changes: new tools, version upgrades, scope expansion
+- Reports changes: new tools, material tool-definition changes, version upgrades, scope expansion
 
 **Ownership does not mean the owner performs security reviews.** It means they are accountable for ensuring reviews happen, conditions are met, and the server is decommissioned when no longer needed.
 
@@ -700,7 +721,7 @@ Organizations routinely over-provision MCP access because it is faster. "Give th
 1. **Separate read and write** into distinct MCP servers where possible; easier to approve, monitor, and revoke.
 2. **Scope OAuth tokens** to minimum required permissions; avoid org-wide admin scopes.
 3. **Disable or remove tools** not needed for the approved use case; do not leave dormant write tools "just in case."
-4. **Re-evaluate on tool addition**: new tools require re-classification per [OWASP MCP02: Privilege Escalation via Scope Creep](https://owasp.org/www-project-mcp-top-10/).
+4. **Re-evaluate on tool change**: new tools and material changes to approved definitions require re-classification per [OWASP MCP02: Privilege Escalation via Scope Creep](https://owasp.org/www-project-mcp-top-10/).
 5. **Prefer predefined action templates** over open-ended admin access for Tier 4 scenarios (see [Principle 4](#principle-4-human-approval-must-be-meaningful)).
 
 ### Red flags during review
@@ -827,7 +848,7 @@ If formal approval takes 6 weeks and `npm install` takes 6 minutes, shadow MCP w
 | Developer wants to test OSS MCP locally    | 2: Classify        | Allow local testing only with [local MCP hardening](#local-mcp-hardening-requirements); prohibit production credentials; local deployment scores minimum Exposure 3 in risk scoring |
 | Urgent production need, no time for review | 1: Ownership       | Exception process with CISO awareness; time-bound risk acceptance                                                                                                                   |
 | Vendor MCP has no logging API              | 5: Auditability    | Reject for Tier 2+; or wrap with proxy that logs tool calls                                                                                                                         |
-| Team adds new tool to approved server      | 2: Classify        | Re-classify; may require re-approval                                                                                                                                                |
+| Team adds a tool or changes an approved definition | 2: Classify | Compare with baseline, re-classify, and require re-approval for material changes                                                                                                             |
 | User complains HITL prompts are annoying   | 4: Meaningful HITL | Reduce scope so fewer actions require approval; do not weaken prompt content                                                                                                        |
 | Business owner on extended leave           | 1: Ownership       | Reassign owner within 30 days or suspend server                                                                                                                                     |
 
@@ -880,6 +901,7 @@ Every MCP server, regardless of source, tier, or deployment model, must be recor
 | Authentication model    | How the server authenticates                   | OAuth 2.1 with corporate GitHub App (HTTP); local credential handling (STDIO) | Baseline compliance check                               |
 | Data accessed           | Classification of data touched                 | Internal source code (confidential)                                           | Drives tier assignment                                  |
 | Tools / actions exposed | Tool names and capabilities                    | `search_repos` (read), `create_pr` (write)                                    | Classify by highest-risk tool                           |
+| Tool definition baseline | Approved definitions and deterministic hashes | Hash of name, description, schemas, annotations, and model-facing metadata    | Detects changes that keep the same tool name            |
 | Expected users          | Who will use this server                       | Engineering (200 users)                                                       | Blast radius assessment                                 |
 | Approval status         | Approved / conditional / rejected / unapproved | Conditionally approved                                                        | Governance state                                        |
 | Risk tier               | Tier 0–4                                       | Tier 3                                                                        | Drives controls and review cadence                      |
@@ -1077,13 +1099,32 @@ The catalog is the operational expression of [Principle 6](#principle-6-the-appr
 
 Owners must report within 5 business days:
 
-- New tools added to an existing server
+- New tools or material changes to existing definitions
 - Version upgrades (especially major versions)
 - Scope changes (new data sources, new user groups)
 - Authentication model changes
 - Deployment location changes
 
 Changes trigger re-classification (Chapter 5) and may require re-approval.
+
+### Tool definition baseline and drift handling
+
+At approval time, retain the complete tool definition and a deterministic hash for every tool. Include the tool name, description, input schema, output schema, annotations, execution metadata, and any other field presented to the model or used by policy. Use a documented canonical serialization so harmless JSON field ordering does not create false drift.
+
+For each observation, record the server inventory entry, retrieval time, protocol revision, complete definition, canonicalization version, and resulting hash. Compare the observed hash with the approved baseline before making a changed definition available to the model.
+
+Treat the following as review triggers:
+
+- A tool is added or removed
+- A description or other model-facing instruction changes
+- Input or output schema, annotations, execution metadata, or security-relevant metadata changes
+- The canonicalization method or trusted server source changes
+
+Use tool-list change notifications as an immediate refresh signal when available. They are not proof that the list is unchanged. Refresh when the advertised cache lifetime expires, on the tier's review cadence, and before high-impact use where the client cannot establish that its cached definition is current.
+
+Material drift moves the affected tool or server to pending re-review. Cosmetic changes may retain approval only when the reviewer records why they do not affect model instructions, data access, actions, authorization, or classification.
+
+A definition hash detects changes to the declared interface. It does not prove that runtime behavior still matches the declaration. Controlled tests, policy enforcement records, and downstream audit evidence remain necessary for higher-risk tools.
 
 **3. Automated discovery**
 
@@ -1177,7 +1218,7 @@ If a server has one read tool and one admin tool, it is **Tier 4**. Do not avera
 
 ### Rule 2: Re-classify when tools change
 
-Adding a write tool to a Tier 1 server triggers immediate re-classification. [OWASP MCP02: Privilege Escalation via Scope Creep](https://owasp.org/www-project-mcp-top-10/) describes the risk of hidden or undocumented tool additions.
+Adding a write tool to a Tier 1 server triggers immediate re-classification. The same applies when an existing definition changes its description, schema, annotations, execution metadata, or declared effects in a way that changes model behavior, data access, actions, or authorization. [OWASP MCP02: Privilege Escalation via Scope Creep](https://owasp.org/www-project-mcp-top-10/) describes the risk of hidden or undocumented capability changes.
 
 ### Rule 3: Do not downgrade without review
 
@@ -1649,7 +1690,7 @@ When multiple MCP servers are connected to the same agent, consider adjusting **
 | Ignoring blast radius of tool chaining        | Read + write in same agent multiplies risk                            | Adjust scores or prohibit combination                    |
 | Auditability 4–5 when only partial logs exist | Downstream logs ≠ MCP attribution                                     | If MCP-level attribution missing, score 3–4              |
 | Vendor trust 1–2 for "popular" OSS            | Popularity ≠ your review status                                       | Score based on *your* organization's review              |
-| Not re-scoring after changes                  | New tools change the risk profile                                     | Re-score on any material change                          |
+| Not re-scoring after changes                  | New tools and changed definitions alter the risk profile               | Compare with the approved baseline and re-score on material drift |
 | Scoring without written rationale             | Unauditable decisions                                                 | Require Notes column for every factor                    |
 | Averaging out a critical factor               | One factor at 5 can mean IAM/admin capability even if total looks Low | Apply critical-factor floor; any factor 5 → minimum High |
 
@@ -1677,7 +1718,7 @@ When multiple MCP servers are connected to the same agent, consider adjusting **
 - [ ] Critical-factor floor applied (any factor = 5 → minimum High)
 - [ ] Score compared to tier assignment for consistency
 - [ ] Scores recorded in risk register and approval decision form
-- [ ] Re-scoring triggered by material changes (new tools, scope expansion)
+- [ ] Re-scoring triggered by material changes (new tools, definition drift, scope expansion)
 - [ ] Critical scores (33–40) escalated to CISO
 - [ ] Tool chaining considered in blast radius and action capability scores
 
@@ -1703,7 +1744,7 @@ The v1.0 guide aligns with security baselines conceptually; this catalog lists c
 | MCP-05     | Audit logging with required fields                                                                                                                                                                                                                       | Recommended  | Required     | Required | Required | Sample log export + SIEM field mapping                                                                                                                          |
 | MCP-06     | HITL for write/delete/deploy                                                                                                                                                                                                                             | Optional     | Recommended  | Required | Required | Screenshot or test of approval prompt                                                                                                                           |
 | MCP-07     | Periodic review per tier cadence                                                                                                                                                                                                                         | Required     | Required     | Required | Required | Review date in risk register                                                                                                                                    |
-| MCP-08     | Tool inventory and highest-risk classification                                                                                                                                                                                                           | Required     | Required     | Required | Required | Tool list with tier rationale                                                                                                                                   |
+| MCP-08     | Tool inventory, approved definition baseline, drift detection, and highest-risk classification                                                                                                                                                         | Required     | Required     | Required | Required | Complete tool definitions, deterministic hashes, last observation time, drift status, and tier rationale                                                                                 |
 | MCP-09     | Vendor/SBOM review for external servers                                                                                                                                                                                                                  | If external  | Required     | Required | Required | SBOM, CVE scan, version pin                                                                                                                                     |
 | MCP-10     | Local MCP hardening (if local)                                                                                                                                                                                                                           | Required     | Required     | Required | Required | Hardening checklist signed off                                                                                                                                  |
 | MCP-11     | Host/client allowlist enforcement                                                                                                                                                                                                                        | Recommended  | Required     | Required | Required | Platform config export                                                                                                                                          |
@@ -1721,7 +1762,7 @@ For every Tier 2 and above approval, collect and retain an **evidence pack** in 
 | Artifact                               | Purpose                                                                                                                                                                    |
 | -------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Architecture diagram                   | Shows host, client, server, transport, downstream APIs, and identity flow                                                                                                  |
-| Tool inventory                         | Lists every exposed tool with read/write/delete classification                                                                                                             |
+| Tool definition baseline               | Stores each approved definition, deterministic hash, canonicalization version, last observation time, drift status, and read/write/delete classification                   |
 | OAuth/audience validation test results | Documents pass/fail for [Authorization Test Cases](#authorization-test-cases) on HTTP servers; N/A for STDIO-only with documented rationale                                |
 | Logging sample                         | Demonstrates required fields are captured and SIEM-mappable                                                                                                                |
 | HITL screenshot for write actions      | Confirms meaningful human approval prompts for write/delete/deploy tools                                                                                                   |
@@ -1796,7 +1837,7 @@ Run these tests during security review for Tier 1+ **HTTP-based** servers. Docum
 
 Forward these fields to SIEM for Tier 2+ servers (align with [Principle 5](#principle-5-auditability-requires-production-logging)):
 
-- `timestamp`, `user_id`, `agent_session_id`, `mcp_host`, `mcp_server`, `tool_name`, `parameters_redacted`, `outcome`, `authorization_result`, `source_ip`
+- `timestamp`, `user_id`, `agent_session_id`, `mcp_host`, `mcp_server`, `tool_name`, `tool_definition_hash`, `parameters_redacted`, `outcome`, `authorization_result`, `source_ip`
 
 ### Detection use cases
 
@@ -1807,14 +1848,14 @@ Forward these fields to SIEM for Tier 2+ servers (align with [Principle 5](#prin
 | Cross-tool exfiltration pattern | Read from sensitive source followed by write/send within same session | Alert; suspend agent session pending review |
 | Auth failure spike              | Repeated audience or scope validation failures                        | Alert; block server pending investigation   |
 | Privileged tool after hours     | Tier 4 tool invocation outside business hours                         | Alert owner and AppSec                      |
-| New tool without re-approval    | Tool name not in approved inventory                                   | Alert; suspend server until re-classified   |
+| Tool definition drift           | Active tool has no approved hash or differs from its approved baseline | Alert; suspend affected tool or server pending re-review |
 
 
 ### MCP incident response playbook (summary)
 
 1. **Identify**: owner, tier, connected servers, agent host, active sessions
 2. **Contain**: revoke OAuth tokens, remove from host allowlists, disable server process
-3. **Investigate**: reconstruct tool call timeline from SIEM; check for tool chaining abuse
+3. **Investigate**: reconstruct the tool call timeline from SIEM; compare active and approved definition hashes; review definition history and tool chaining abuse
 4. **Eradicate**: patch misconfiguration, rotate credentials, remove malicious tools or dependencies
 5. **Recover**: re-approve only after authorization and production hard gates and tier controls pass
 6. **Document**: update risk register, incident ticket, and lessons learned
@@ -1896,6 +1937,8 @@ Use this checklist to assess readiness before presenting MCP governance to execu
 
 - [ ] Inventory process defined (formal intake or interim spreadsheet)
 - [ ] First inventory pass completed: all known servers captured, including suspected shadow MCP
+- [ ] Approved tool definitions and deterministic hashes retained in inventory
+- [ ] Tool-list refresh, drift detection, and material-change re-review process defined
 - [ ] Classification model (Tier 0–4) communicated to engineering and AI teams
 - [ ] Risk register established as single source of truth
 
