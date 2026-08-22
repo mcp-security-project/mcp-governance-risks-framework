@@ -268,12 +268,12 @@ Server-centric review alone is insufficient. Governance must also cover:
 | Component      | Examples                                                                              | Governance focus                                                    |
 | -------------- | ------------------------------------------------------------------------------------- | ------------------------------------------------------------------- |
 | **MCP Host**   | Claude Desktop, Cursor, VS Code, internal agent platforms, CI agents, browser clients | Allowlists, client configuration review, connected-server inventory |
-| **MCP Client** | Client libraries inside the host that aggregate tools and manage sessions             | Tool registry review, session binding, consent display              |
+| **MCP Client** | Client libraries inside the host that aggregate tools and manage sessions             | Server-scoped tool identity, provenance, registry review, session binding, consent display |
 | **MCP Server** | GitHub MCP, filesystem MCP, custom internal servers                                   | Classification, authorization, logging, vendor review               |
 | **Transport**  | stdio, HTTP, SSE                                                                      | Encryption, network exposure, local vs. remote restrictions         |
 
 
-Clients can aggregate tools from multiple servers into one registry. That aggregation is where **tool chaining** risk materializes, and why host and client governance are mandatory, not optional.
+Clients can aggregate tools from multiple servers into one registry. That aggregation is where **tool chaining** and cross-server trust risks materialize, and why host and client governance are mandatory, not optional.
 
 ### Four properties that change your threat model
 
@@ -468,6 +468,29 @@ Tool chaining is the highest-priority MCP attack pattern for most organizations.
 - Apply least privilege: do not connect read and write MCP servers to the same agent unless business need is documented and approved
 - Monitor for unusual cross-tool workflows
 - Treat tool chaining as a scoring and classification input, not an edge case (see [Chapter 6](#tool-chaining-adjustment))
+
+### **Cross-server trust and capability manipulation**
+
+A server can influence how the model uses tools owned by another server without modifying those tools directly. For example, a low-trust server can place instructions in a tool description that tell the model to call a higher-impact tool from a trusted server. Name collisions create a second path: tool names are unique only within one server, so an aggregating host may confuse or overwrite tools if it does not preserve server scope.
+
+The [MCP tools specification](https://modelcontextprotocol.io/specification/2026-07-28/server/tools) states that a server's self-reported name is not guaranteed to be globally unique. Approval, policy, and logging therefore need an organization-assigned identity for the configured connection, not a display name alone.
+
+**Attack flow:**
+
+1. An agent configuration connects a low-trust server and a trusted server with higher-impact tools
+2. The low-trust server returns a colliding tool name or metadata that refers to the trusted server's tools
+3. The host loses provenance, silently resolves the collision, or exposes the instruction to the shared model context
+4. The model selects or invokes a trusted tool under instructions supplied by the other server
+
+**Governance response:**
+
+- Assign each approved connection a configured server ID and bind it to the approved remote endpoint or local launch configuration
+- Key approval, policy, and audit records by configured server ID plus tool name, not by tool or display name alone
+- Reject silent overwrite or last-wins collision handling; if the host cannot preserve unambiguous provenance, do not combine colliding catalogs
+- Review tool descriptions and metadata that refer to tools owned by another server
+- Separate lower-trust and higher-impact catalogs when shared model context is not required
+
+Configured connection identity preserves provenance but does not prove who operates the server. Authentication, transport security, and vendor review remain separate controls. Description review or pattern scanning is also a detective aid, not proof that metadata is safe; structural isolation and server-scoped policy are the preventive controls.
 
 ### **1. Prompt Injection via Tool Output**
 
@@ -870,7 +893,8 @@ Every MCP server, regardless of source, tier, or deployment model, must be recor
 
 | Field                   | Description                                    | Example                                                                       | Why it matters                                          |
 | ----------------------- | ---------------------------------------------- | ----------------------------------------------------------------------------- | ------------------------------------------------------- |
-| MCP server name         | Unique identifier                              | `github-repo-management`                                                      | Distinct from display name; used in logs and allowlists |
+| Configured server ID    | Organization-assigned ID bound to the approved connection configuration | `prod-github-repo-read`                                         | Provides stable provenance for policy, logs, and tool identity |
+| MCP server name         | Server-reported or familiar name               | `github-repo-management`                                                      | Useful for display; not a globally unique identity      |
 | Display name            | Human-readable name                            | GitHub Repo Management MCP                                                    | For reports and dashboards                              |
 | Use case                | Business purpose                               | Enable agents to create PRs for engineering teams                             | Justifies existence; drives classification              |
 | Owner                   | Named accountable person                       | [jane.smith@company.com](mailto:jane.smith@company.com)                       | Principle 1: no owner, no approval                      |
@@ -879,7 +903,8 @@ Every MCP server, regardless of source, tier, or deployment model, must be recor
 | Deployment location     | Where the server runs                          | Internal K8s cluster, developer laptop, vendor SaaS                           | Affects exposure scoring                                |
 | Authentication model    | How the server authenticates                   | OAuth 2.1 with corporate GitHub App (HTTP); local credential handling (STDIO) | Baseline compliance check                               |
 | Data accessed           | Classification of data touched                 | Internal source code (confidential)                                           | Drives tier assignment                                  |
-| Tools / actions exposed | Tool names and capabilities                    | `search_repos` (read), `create_pr` (write)                                    | Classify by highest-risk tool                           |
+| Tools / actions exposed | Server-scoped tool identities and capabilities | (`prod-github-repo-read`, `search_repos`) (read)                              | Prevents policy and inventory ambiguity across servers |
+| Approved configurations | Host or agent configuration IDs and co-resident configured server IDs | `engineering-assistant-v3` with `prod-ticket-write`              | Records the combined trust and capability boundary     |
 | Expected users          | Who will use this server                       | Engineering (200 users)                                                       | Blast radius assessment                                 |
 | Approval status         | Approved / conditional / rejected / unapproved | Conditionally approved                                                        | Governance state                                        |
 | Risk tier               | Tier 0–4                                       | Tier 3                                                                        | Drives controls and review cadence                      |
@@ -890,8 +915,6 @@ Every MCP server, regardless of source, tier, or deployment model, must be recor
 
 ### Optional but valuable fields
 
-- Agent platforms using this server (Cursor, Claude Desktop, internal agent platform)
-- Connected MCP servers in same agent config (tool chaining risk)
 - Data processing location (region, cloud provider)
 - Incident history (linked IR tickets)
 - Conditional approval items and deadlines
@@ -1169,7 +1192,7 @@ Before approving Tier 4, ask: **Can this use case be served at Tier 3 with narro
 
 ## Classification Rules
 
-These five rules prevent the most common classification errors.
+These six rules prevent the most common classification errors.
 
 ### Rule 1: Classify by highest-risk tool
 
@@ -1198,6 +1221,12 @@ Separation simplifies approval, monitoring, and revocation.
 ### Rule 5: Document the rationale
 
 Every tier assignment must include written rationale in the approval record: which tool drove the tier, what data is accessed, and what alternatives were considered.
+
+### Rule 6: Approve combined server configurations
+
+Approval of each server does not automatically approve every combination. Record and review the host or agent configuration when multiple servers share model context. The configuration inherits at least the highest tier of any connected server. Also review whether a lower-trust catalog can influence a higher-impact tool through metadata, name collisions, or ambiguous provenance.
+
+Where the host cannot preserve server-scoped tool identity or enforce policy by configured server ID plus tool name, separate the servers into different configurations or document a compensating control. Do not claim collision prevention or provenance enforcement when the host exposes no such control.
 
 ---
 
@@ -1638,6 +1667,8 @@ Decision:      [ ] Approve  [ ] Conditional  [ ] Reject
 
 When multiple MCP servers are connected to the same agent, consider adjusting **Blast Radius** and **Action Capability** upward by 1 point each if a read server and write server are combined: unless documented business need and compensating controls exist.
 
+Review cross-server trust separately from read/write chaining. A configuration that combines a lower-trust catalog with Tier 3 or Tier 4 tools requires server-scoped identity, deterministic collision handling, and provenance in policy decisions, or isolation that prevents the catalogs from sharing model context.
+
 ---
 
 ## Common Scoring Mistakes
@@ -1680,6 +1711,7 @@ When multiple MCP servers are connected to the same agent, consider adjusting **
 - [ ] Re-scoring triggered by material changes (new tools, scope expansion)
 - [ ] Critical scores (33–40) escalated to CISO
 - [ ] Tool chaining considered in blast radius and action capability scores
+- [ ] Combined server configurations reviewed for name collisions, cross-server metadata instructions, and provenance controls
 
 ---
 
@@ -1707,7 +1739,7 @@ The v1.0 guide aligns with security baselines conceptually; this catalog lists c
 | MCP-09     | Vendor/SBOM review for external servers                                                                                                                                                                                                                  | If external  | Required     | Required | Required | SBOM, CVE scan, version pin                                                                                                                                     |
 | MCP-10     | Local MCP hardening (if local)                                                                                                                                                                                                                           | Required     | Required     | Required | Required | Hardening checklist signed off                                                                                                                                  |
 | MCP-11     | Host/client allowlist enforcement                                                                                                                                                                                                                        | Recommended  | Required     | Required | Required | Platform config export                                                                                                                                          |
-| MCP-12     | Tool chaining review for agent configs                                                                                                                                                                                                                   | Required     | Required     | Required | Required | Connected-server list per agent                                                                                                                                 |
+| MCP-12     | Tool chaining and cross-server trust review for agent configurations                                                                                                                                                                                      | Required     | Required     | Required | Required | Approved combined configuration, server-scoped tool inventory, collision test, and provenance review                                                                                                  |
 | MCP-13     | Tool output treated as untrusted input                                                                                                                                                                                                                   | Recommended  | Required     | Required | Required | Client/host output-handling review: outputs delimited or structured; no raw tool returns promoted to system instructions without validation                     |
 
 
@@ -1727,7 +1759,7 @@ For every Tier 2 and above approval, collect and retain an **evidence pack** in 
 | HITL screenshot for write actions      | Confirms meaningful human approval prompts for write/delete/deploy tools                                                                                                   |
 | SBOM or dependency scan                | Required for external/OSS servers: version pin and CVE review                                                                                                              |
 | Owner and risk acceptance record       | Named owner, approver, date, and residual risk acceptance for conditional approvals                                                                                        |
-| Connected-server list                  | Documents tool chaining risk for agent configs using multiple MCP servers                                                                                                  |
+| Approved combined server configuration | Documents configured server IDs, server-scoped tools, trust levels, collision handling, and isolation decisions for agent configurations using multiple servers           |
 | Output-handling review (optional)      | For Tier 2+ agents that chain read + write servers: documents delimiter tagging, output filtering, or structured vs. free-text returns ([MCP-13](#formal-control-catalog)) |
 
 
@@ -1749,6 +1781,27 @@ MCP architecture includes MCP Host, MCP Client, and MCP Server. Govern all three
 
 
 For each host, maintain: host name, platform owner, list of connected MCP servers, approval status of each connection, and last configuration review date.
+
+### Cross-server identity and catalog controls
+
+For hosts that aggregate multiple servers, use the configured server ID plus tool name as the policy and audit identity. Preserve the server association when tools are presented to the model, shown for user consent, evaluated by policy, and written to logs. Never use the server-reported name as the sole namespace because it is not guaranteed to be unique.
+
+Collision handling must be deterministic and visible. A host may namespace tools, reject the conflicting tool, or isolate the catalogs, but it must not silently overwrite one definition with another. Where the host exposes no collision or provenance control, use separate host or agent configurations for combinations involving higher-impact tools.
+
+Review tool descriptions and metadata for instructions that name or direct use of another server's tools. This review may be manual or assisted by pattern matching. Because free-text review cannot detect every manipulation, use it as supporting evidence only; it does not replace server-scoped identity, policy, or isolation.
+
+## Cross-Server Trust Test Cases
+
+Run these tests for hosts or clients that aggregate tools from multiple servers. If the host does not expose a control needed for a test, record the limitation and use isolation or a documented compensating control rather than marking the test as passed.
+
+
+| Test                              | Procedure                                                                                                    | Pass criteria                                                                                         |
+| --------------------------------- | ------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------- |
+| **Duplicate tool names**          | Connect two test servers that expose the same tool name                                                      | Host preserves distinct provenance and uses documented collision handling; no silent overwrite occurs |
+| **Duplicate reported names**      | Connect two test servers that report the same server name                                                    | Policy and logs still distinguish the connections by configured server ID                             |
+| **Server-scoped policy**          | Allow a tool from one test server and deny the same-named tool from another                                  | Policy decision follows configured server ID plus tool name                                           |
+| **Cross-server instruction fixture** | Add a known test description that directs the model to call another server's higher-impact tool           | Implemented review rule flags the fixture before approval; result is recorded as coverage, not proof of complete detection |
+| **Provenance evidence**           | Invoke same-named tools from both test servers                                                               | Consent and audit evidence identify the configured server ID and tool name for each invocation         |
 
 ---
 
