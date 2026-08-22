@@ -11,9 +11,9 @@ These links appear in the [MCP Governance & Risk Framework](mcp-governance-risk-
 
 | Resource | URL |
 |----------|-----|
-| MCP Specification | https://spec.modelcontextprotocol.io/ |
-| MCP Authorization Specification (2025-11-25) | https://spec.modelcontextprotocol.io/specification/2025-11-25/basic/authorization/ |
-| MCP Security Best Practices | https://modelcontextprotocol.io/specification/draft/basic/security_best_practices |
+| MCP Specification (2026-07-28) | https://modelcontextprotocol.io/specification/2026-07-28/ |
+| MCP Authorization Specification (2026-07-28) | https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization |
+| MCP Security Best Practices (2026-07-28) | https://modelcontextprotocol.io/docs/2026-07-28/tutorials/security/security_best_practices |
 | OWASP MCP Top 10 | https://owasp.org/www-project-mcp-top-10/ |
 | OWASP Top 10 for LLM Applications | https://owasp.org/www-project-top-10-for-large-language-model-applications/ |
 | NIST AI Risk Management Framework (AI RMF 1.0) | https://www.nist.gov/itl/ai-risk-management-framework |
@@ -52,8 +52,12 @@ These links appear in the [MCP Governance & Risk Framework](mcp-governance-risk-
 | Model Context Protocol (main site)                    | [https://modelcontextprotocol.io/](https://modelcontextprotocol.io/)                                                                                                             |
 | MCP documentation index (`llms.txt`)                  | [https://modelcontextprotocol.io/llms.txt](https://modelcontextprotocol.io/llms.txt)                                                                                             |
 | MCP Specification (spec site)                         | [https://spec.modelcontextprotocol.io/](https://spec.modelcontextprotocol.io/)                                                                                                   |
-| MCP Specification (2025-11-25)                        | [https://spec.modelcontextprotocol.io/specification/2025-11-25/](https://spec.modelcontextprotocol.io/specification/2025-11-25/)                                                 |
-| MCP Authorization (2025-11-25)                        | [https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization](https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization)                     |
+| MCP Specification (2026-07-28)                        | [https://modelcontextprotocol.io/specification/2026-07-28/](https://modelcontextprotocol.io/specification/2026-07-28/)                                                           |
+| MCP Authorization (2026-07-28)                        | [https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization](https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization)                     |
+| MCP Security Best Practices (2026-07-28)              | [https://modelcontextprotocol.io/docs/2026-07-28/tutorials/security/security_best_practices](https://modelcontextprotocol.io/docs/2026-07-28/tutorials/security/security_best_practices) |
+| MCP 2026-07-28 release overview                       | [https://blog.modelcontextprotocol.io/posts/2026-07-28/](https://blog.modelcontextprotocol.io/posts/2026-07-28/)                                                                 |
+| MCP Specification (2025-11-25, historical)            | [https://spec.modelcontextprotocol.io/specification/2025-11-25/](https://spec.modelcontextprotocol.io/specification/2025-11-25/)                                                 |
+| MCP Authorization (2025-11-25, historical)            | [https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization](https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization)                     |
 | MCP Authorization (spec site, 2025-11-25)             | [https://spec.modelcontextprotocol.io/specification/2025-11-25/basic/authorization/](https://spec.modelcontextprotocol.io/specification/2025-11-25/basic/authorization/)         |
 | MCP Specification (2025-06-18)                        | [https://modelcontextprotocol.io/specification/2025-06-18](https://modelcontextprotocol.io/specification/2025-06-18)                                                             |
 | MCP Key Changes (2025-06-18)                          | [https://modelcontextprotocol.io/specification/2025-06-18/changelog](https://modelcontextprotocol.io/specification/2025-06-18/changelog)                                         |
@@ -358,7 +362,7 @@ The [README](README.md) and [OWASP submission draft](owasp-project-submission-dr
 
 | Guide topic                       | Primary URLs                                                                                                                                                                                                                                                                                                                                            |
 | --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Approval & authorization          | [MCP Authorization Spec (2025-11-25)](https://spec.modelcontextprotocol.io/specification/2025-11-25/basic/authorization/), [MCP Security Best Practices](https://modelcontextprotocol.io/specification/2025-11-25/basic/security_best_practices), [OWASP MCP Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/MCP_Security_Cheat_Sheet.html) |
+| Approval & authorization          | [MCP Authorization Spec (2026-07-28)](https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization), [MCP Security Best Practices](https://modelcontextprotocol.io/docs/2026-07-28/tutorials/security/security_best_practices), [OWASP MCP Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/MCP_Security_Cheat_Sheet.html) |
 | Classification & risk scoring     | [OWASP MCP Top 10](https://owasp.org/www-project-mcp-top-10/), [MSSS levels](https://github.com/mcp-security-standard/mcp-server-security-standard), [Framework Mapping Appendix](framework-mapping.md)                                                                                                                                                 |
 | Asset inventory & registry        | [Official MCP Registry](https://registry.modelcontextprotocol.io/), [MCP Registry about](https://modelcontextprotocol.io/registry/about)                                                                                                                                                                                                                |
 | Third-party / supply chain review | [OWASP MCP04](https://owasp.org/www-project-mcp-top-10/2025/MCP04-2025-%E2%80%93Software-Supply-Chain-Attacks&Dependency-Tampering), [Awesome MCP CVE](https://github.com/awesome-mcp-security/awesome-mcp-cve), [Vendor Questionnaire](important-forms/vendor-questionnaire.md)                                                                        |
@@ -373,7 +377,7 @@ The [README](README.md) and [OWASP submission draft](owasp-project-submission-dr
 
 - **Draft status:** This file is not yet linked from the main guide navigation. Review before promoting to published status.
 - **OWASP MCP Top 10:** Currently in beta (v0.1). Risk names and URLs may change at final release. Note: published OWASP MCP risk names differ slightly from some internal guide chapter mappings; reconcile during final release.
-- **Current spec version:** This guide targets MCP Specification **2025-11-25** as the current authorization reference. Older versions (2025-03-26, 2025-06-18) remain listed for historical comparison.
+- **Current spec version:** This guide targets MCP Specification **2026-07-28**. Older versions (2025-03-26, 2025-06-18, and 2025-11-25) remain listed for historical and compatibility review.
 - **Dual spec hosts:** MCP documentation appears on both `modelcontextprotocol.io` and `spec.modelcontextprotocol.io`. Verify which version your deployment targets.
 - **Link rot:** Community awesome lists and blog posts change frequently. Prefer standards bodies, official MCP docs, and GitHub repos as canonical sources.
 - **Contributions:** Add new URLs via pull request. Prefer governance, risk, compliance, and MCP-specific security sources over general AI news.
@@ -388,6 +392,9 @@ These references were identified during an internet review and are recommended a
 
 | Resource | URL | Why add it |
 |----------|-----|------------|
+| MCP Specification (2026-07-28) | https://modelcontextprotocol.io/specification/2026-07-28/ | Current protocol revision with a stateless core and versioned compatibility guidance |
+| MCP Authorization (2026-07-28) | https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization | Current authorization requirements for resource, audience, issuer, and client registration validation |
+| MCP Security Best Practices (2026-07-28) | https://modelcontextprotocol.io/docs/2026-07-28/tutorials/security/security_best_practices | Current state-handle, authorization, local server, and implementation security guidance |
 | MCP Specification (2025-06-18) | https://modelcontextprotocol.io/specification/2025-06-18 | Official intermediate spec version between 2025-03-26 and 2025-11-25 |
 | MCP Key Changes (2025-06-18) | https://modelcontextprotocol.io/specification/2025-06-18/changelog | Helps reviewers understand version-specific behavior changes |
 | MCP Authorization (2025-06-18) | https://modelcontextprotocol.io/specification/2025-06-18/basic/authorization | Versioned auth reference for OAuth and audience validation |
@@ -480,4 +487,4 @@ These references were identified during an internet review and are recommended a
 | NIST SP 800-61 Rev. 2 | Keep Rev. 2 only for historical compatibility; add Rev. 3 as the current primary IR reference |
 | MCP Security Best Practices draft path | Prefer the docs tutorial URL for general readers: `https://modelcontextprotocol.io/docs/tutorials/security/security_best_practices`; keep versioned spec paths when citing a specific protocol version |
 | MCP individual OWASP links | Re-check before publishing; OWASP MCP Top 10 remains beta and individual URLs may change |
-| MCP Specification (2025-11-25) | Keep as current/later version reference, but add 2025-06-18 because many ecosystem docs and implementations still refer to it |
+| MCP Specification (2025-11-25) | Keep as a historical and compatibility reference for deployments that still use protocol sessions |
