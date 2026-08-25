@@ -1309,7 +1309,7 @@ Discrepancies between tier and score should be investigated; they may indicate m
 
 Before applying the eight-factor scoring model, evaluate **hard gates**. If any gate fails, the server is **rejected** regardless of total score.
 
-Hard gates fall into two categories: **authorization hard gates** (for HTTP-based servers that support authentication) and **production hard gates** (for any server intended for production or enterprise use). Together they implement the governance rules from [Chapter 3](#chapter-3-mcp-governance-principles) and the [MCP Authorization Specification (Version 2025-11-25)](https://spec.modelcontextprotocol.io/specification/2025-11-25/basic/authorization/).
+Hard gates fall into three categories: **authorization hard gates** (for HTTP-based servers that support authentication), **network exposure hard gates** (for HTTP-based servers and URL-fetching features), and **production hard gates** (for any server intended for production or enterprise use). Together they implement the governance rules from [Chapter 3](#chapter-3-mcp-governance-principles), the [MCP Authorization Specification (Version 2025-11-25)](https://spec.modelcontextprotocol.io/specification/2025-11-25/basic/authorization/), and [MCP Security Best Practices](https://modelcontextprotocol.io/docs/tutorials/security/security_best_practices).
 
 ### Authorization Hard Gates
 
@@ -1324,6 +1324,22 @@ These gates apply to **HTTP-based MCP servers that support authentication**. Aut
 
 
 **Broad token acceptance** includes OAuth or API scopes that exceed the approved use case, not only tokens issued for the wrong audience. A GitHub App with repository admin scope for a PR-only workflow fails this gate and [Principle 3](#principle-3-least-privilege-for-tools). Cross-reference scope fit during every authorization review.
+
+### Network Exposure Hard Gates
+
+The HTTP exposure gates apply to all HTTP-based MCP servers, including servers intended to run only on a local workstation. Anonymous access is acceptable only when all exposed data is intentionally public and every action is read-only and side-effect-free. The SSRF gate applies to any component or tool that retrieves caller-controlled URLs, regardless of MCP transport. These are organizational approval requirements, not a claim that the MCP specification requires authorization for every deployment.
+
+
+| Gate                                  | Condition                                                                                                                                                                   | Result if failed |
+| ------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------- |
+| **Unauthenticated non-public access** | An HTTP endpoint exposes internal or sensitive data, or any write, execute, or administrative action, without caller authentication at the server or a non-bypassable gateway | **Reject**       |
+| **Incomplete endpoint protection**    | The current MCP endpoint or an enabled compatibility endpoint can bypass the approved authentication enforcement point                                                      | **Reject**       |
+| **Local network trust**               | A local HTTP server exposes non-public capabilities and relies only on loopback binding, network location, or an `Origin` check instead of authenticating the caller              | **Reject**       |
+| **SSRF-prone URL retrieval**          | Authorization discovery, client metadata retrieval, or a tool retrieves caller-controlled URLs without an approved outbound policy that restricts schemes, validates resolved destinations and redirects, and blocks destinations outside the approved policy | **Reject**       |
+| **DNS rebinding exposure**            | The end-to-end HTTP request path does not reject a present but invalid `Origin` header, or a local-only server is reachable through an unapproved network interface              | **Reject**       |
+
+
+SSRF and DNS rebinding require different tests. SSRF abuses outbound requests made by an MCP component or tool. DNS rebinding abuses inbound browser access to a local HTTP listener. Controls for one do not replace controls for the other. Private and reserved destinations should be blocked by default. A legitimate internal destination requires a documented allowlist entry and an enforcement point that prevents access to other internal addresses. Cloud metadata endpoints remain blocked.
 
 ### Production Hard Gates
 
@@ -1489,6 +1505,8 @@ Use a simple **1–5 score** for each factor. Total scores range from 8 (minimum
 If **any** risk factor scores **5**, the risk rating cannot be lower than **High**, regardless of total score. Total score still determines approval path within High and Critical bands.
 
 **Example:** Action Capability 5 with all other factors at 1 (total 12) → **High**, not Low. Reject or scope down unless CISO-level exception applies.
+
+An unauthenticated server that can read internal data or exercise write, execute, or privileged downstream authority is also **High** at minimum during discovery and exception triage. It cannot be approved until the [Network Exposure Hard Gates](#network-exposure-hard-gates) pass.
 
 *v1.1 may introduce explicit factor weights (for example, higher weight for Action Capability and Identity Scope). v1.0 uses equal 1–5 factors plus the critical-factor floor.*
 
@@ -1669,7 +1687,8 @@ When multiple MCP servers are connected to the same agent, consider adjusting **
 
 ## Practitioner Checklist
 
-- [ ] Authorization hard gates evaluated (token passthrough, audience validation, broad token acceptance) for HTTP-based servers
+- [ ] Authorization hard gates evaluated (token passthrough, audience validation, broad token acceptance) for authenticated HTTP-based servers
+- [ ] Network exposure hard gates evaluated (endpoint authentication, local HTTP trust, SSRF, DNS rebinding) for all HTTP-based servers and URL-fetching features
 - [ ] Production hard gates evaluated (named owner, documented scope, production logging for Tier 2+, no production credentials on local STDIO)
 - [ ] Risk scoring worksheet used for every MCP server at or above Tier 2
 - [ ] All eight factors scored with documented rationale
@@ -1709,6 +1728,7 @@ The v1.0 guide aligns with security baselines conceptually; this catalog lists c
 | MCP-11     | Host/client allowlist enforcement                                                                                                                                                                                                                        | Recommended  | Required     | Required | Required | Platform config export                                                                                                                                          |
 | MCP-12     | Tool chaining review for agent configs                                                                                                                                                                                                                   | Required     | Required     | Required | Required | Connected-server list per agent                                                                                                                                 |
 | MCP-13     | Tool output treated as untrusted input                                                                                                                                                                                                                   | Recommended  | Required     | Required | Required | Client/host output-handling review: outputs delimited or structured; no raw tool returns promoted to system instructions without validation                     |
+| MCP-14     | Network exposure controls: authentication on non-public HTTP endpoints, SSRF restrictions for URL-fetching features, and DNS rebinding defenses                                                                                                             | If applicable | If applicable | If applicable | If applicable | Network exposure test results ([HTTP and URL Retrieval Security Test Cases](#http-and-url-retrieval-security-test-cases))                           |
 
 
 ---
@@ -1729,6 +1749,7 @@ For every Tier 2 and above approval, collect and retain an **evidence pack** in 
 | Owner and risk acceptance record       | Named owner, approver, date, and residual risk acceptance for conditional approvals                                                                                        |
 | Connected-server list                  | Documents tool chaining risk for agent configs using multiple MCP servers                                                                                                  |
 | Output-handling review (optional)      | For Tier 2+ agents that chain read + write servers: documents delimiter tagging, output filtering, or structured vs. free-text returns ([MCP-13](#formal-control-catalog)) |
+| Network and URL retrieval test results | Documents endpoint authentication, listener binding, SSRF, redirect, and DNS rebinding tests; N/A only when the server is STDIO-only and has no URL-fetching features      |
 
 
 Evidence packs are mandatory for Tier 2+ approvals. Tier 0–1 pilots may use a lightweight subset; Tier 3–4 require complete packs plus security architecture review.
@@ -1754,7 +1775,7 @@ For each host, maintain: host name, platform owner, list of connected MCP server
 
 ## Local MCP Hardening Requirements
 
-Apply these requirements to any MCP server running locally (stdio transport on a developer laptop or workstation):
+Apply these requirements to any MCP server running locally, whether it uses stdio or HTTP:
 
 - **Sandboxing**: run server process with restricted OS privileges; no root/admin unless formally justified
 - **Restricted filesystem access**: limit read/write paths to project directories; prohibit home directory or system path access by default
@@ -1762,7 +1783,9 @@ Apply these requirements to any MCP server running locally (stdio transport on a
 - **Consent display**: host must show user which tools and servers are active before first use
 - **Command visibility**: shell/command execution tools must display command text before execution
 - **Dangerous command warnings**: warn on destructive patterns (rm -rf, DROP TABLE, IAM changes)
-- **Transport restrictions**: prefer stdio for local-only servers; restrict HTTP/SSE listeners to localhost; prohibit internet-exposed local MCP without Tier 3+ review
+- **Transport restrictions**: prefer stdio for local-only servers; bind local HTTP/SSE listeners to loopback; prohibit internet-exposed local MCP without Tier 3+ review
+- **Local HTTP authentication**: require caller authentication for non-public capabilities; if authentication is unavailable, use access-controlled IPC instead of HTTP
+- **DNS rebinding protection**: validate browser origins against an explicit allowlist and verify that the end-to-end request path rejects an invalid `Origin` header
 - **No production credentials**: local configs must not contain production API keys, tokens, or service accounts
 
 Local deployment without these controls scores **Exposure 3 minimum** in the risk scoring model.
@@ -1784,6 +1807,22 @@ Run these tests during security review for Tier 1+ **HTTP-based** servers. Docum
 | **Scope enforcement**           | Invoke tool outside granted OAuth scope                                              | Tool call denied and logged                                         |
 | **Protected resource metadata** | Fetch server metadata document                                                       | Metadata present and matches registered authorization configuration |
 | **Token rejection**             | Present expired, revoked, or malformed token                                         | Server rejects with no tool execution                               |
+
+
+## HTTP and URL Retrieval Security Test Cases
+
+Run the network binding, route authentication, and DNS rebinding tests for every HTTP-based server, including local-only deployments. Run the SSRF and URL scheme tests for every component or tool that retrieves caller-controlled URLs, including those exposed over stdio. Any failure requires rejection under the [Network Exposure Hard Gates](#network-exposure-hard-gates).
+
+
+| Test                              | Procedure                                                                                                                                                                       | Pass criteria                                                                                                            |
+| --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| **Network binding**               | Inspect listeners and attempt a connection through each non-approved interface                                                                                                  | Server listens only on approved interfaces; local-only servers bind to loopback                                          |
+| **Endpoint authentication**       | Send unauthenticated requests to the current MCP endpoint and every enabled compatibility endpoint, including a direct request that bypasses any gateway                         | Every endpoint exposing non-public data or actions rejects the request at the approved enforcement point                |
+| **Origin validation**             | Send a request through the normal entry point with a present but unapproved `Origin` header                                                                                      | Request is rejected with HTTP 403 before MCP processing                                                                  |
+| **SSRF destination filtering**    | Supply URLs resolving to destinations outside the approved outbound policy, including loopback, private, link-local, and cloud metadata addresses, to each URL-fetching feature | The connection is blocked; any approved internal exception is limited to its documented destination                    |
+| **SSRF redirect validation**      | Supply an allowed URL that redirects to a destination outside the approved outbound policy                                                                                      | Every redirect target is resolved and revalidated; the unapproved destination is not contacted                          |
+| **DNS resolution change**         | Simulate a hostname whose resolved address changes from an approved address to an unapproved one between validation and connection                                              | The client connects only to the validated address, or a connection-level egress control blocks the unapproved address   |
+| **URL scheme restriction**        | Supply non-approved schemes to authorization metadata retrieval and URL-fetching tools                                                                                           | OAuth URLs accept only specification-permitted schemes; tools accept only schemes documented for the approved use case |
 
 
 ---
@@ -1816,7 +1855,7 @@ Forward these fields to SIEM for Tier 2+ servers (align with [Principle 5](#prin
 2. **Contain**: revoke OAuth tokens, remove from host allowlists, disable server process
 3. **Investigate**: reconstruct tool call timeline from SIEM; check for tool chaining abuse
 4. **Eradicate**: patch misconfiguration, rotate credentials, remove malicious tools or dependencies
-5. **Recover**: re-approve only after authorization and production hard gates and tier controls pass
+5. **Recover**: re-approve only after authorization, network exposure, and production hard gates and tier controls pass
 6. **Document**: update risk register, incident ticket, and lessons learned
 
 ---
