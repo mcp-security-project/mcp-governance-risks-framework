@@ -659,7 +659,7 @@ Every MCP server must have a **named owner**: a specific person accountable for 
 
 | Condition | Rule        | What it means in practice                                   |
 | --------- | ----------- | ----------------------------------------------------------- |
-| No owner  | No approval | Intake forms without a named owner are returned immediately |
+| No owner  | No approval | Intake requests without a named owner are returned immediately |
 
 
 ### Why ownership requires formal accountability
@@ -1155,7 +1155,7 @@ Quarterly: verify every server still has a valid, reachable owner. Orphaned serv
 ### Inventory program checklist
 
 - MCP inventory exists (spreadsheet, GRC tool, or CMDB entry)
-- Required fields defined and enforced via intake form
+- Required fields defined and enforced via the intake process
 - Risk register established as single source of truth
 - Decommissioning process documented
 - Inventory review cadence assigned to responsible team (AppSec or governance PM)
@@ -1738,7 +1738,7 @@ Review cross-server trust separately from read/write chaining. A configuration t
 - [ ] Total score mapped to risk rating band
 - [ ] Critical-factor floor applied (any factor = 5 → minimum High)
 - [ ] Score compared to tier assignment for consistency
-- [ ] Scores recorded in risk register and approval decision form
+- [ ] Scores recorded in the risk register and approval record
 - [ ] Re-scoring triggered by material changes (new tools, scope expansion)
 - [ ] Critical scores (33–40) escalated to CISO
 - [ ] Tool chaining considered in blast radius and action capability scores
@@ -1818,7 +1818,7 @@ Manual evidence packs are a point-in-time artifact: they show what was true on a
 
 | Governance rule | Automated enforcement point | Evidence produced |
 | --------------- | --------------------------- | ----------------- |
-| No owner = No approval | Intake form blocks submission until owner and scope fields are populated; registry rejects ownerless servers | Intake record with owner, approver, and timestamp |
+| No owner = No approval | Intake process blocks submission until owner and scope fields are populated; registry rejects ownerless servers | Intake record with owner, approver, and timestamp |
 | No logging = No production use | Connection gate checks that the server emits structured logs; production traffic is denied when log stream is absent or stale | Log presence check result, captured at connect and periodically |
 | No scope definition = No access | Tool manifest is compared against declared scope at connect time; out-of-scope tools are blocked or quarantined | Scope comparison result and any policy violations |
 | No review = No enterprise deployment | Review scheduler fires per tier cadence; overdue reviews suspend new connections | Review status history with due dates and outcomes |
@@ -2050,8 +2050,8 @@ These sources inform the controls and language used throughout this guide. Secur
 | [MCP Specification](https://spec.modelcontextprotocol.io/)                                                                         | Defines the protocol this guide governs: tools, resources, transports, and authorization                     |
 | [MCP Authorization Specification (2025-11-25)](https://spec.modelcontextprotocol.io/specification/2025-11-25/basic/authorization/) | Optional authorization; OAuth 2.1, audience validation, and token handling for authenticated HTTP transports |
 | [MCP Security Best Practices](https://modelcontextprotocol.io/docs/tutorials/security/security_best_practices)                                              | Official guidance on confused deputy, token passthrough, session security, and authorization design          |
-| [OWASP MCP Top 10](https://owasp.org/www-project-mcp-top-10/)                                                                      | Top ten MCP-specific risks; see [Formal Control Catalog](#formal-control-catalog) for evidence requirements  |
-| [OWASP Top 10 for LLM Applications](https://owasp.org/www-project-top-10-for-large-language-model-applications/)                   | LLM risks that intersect with MCP: prompt injection, excessive agency, supply chain                          |
+| [OWASP MCP Top 10](https://owasp.org/www-project-mcp-top-10/)                                                                      | Top ten MCP-specific risks; see [Formal Control Catalog](#formal-control-catalog) and [framework-mapping.md](framework-mapping.md) |
+| [OWASP Top 10 for LLM Applications](https://owasp.org/www-project-top-10-for-large-language-model-applications/)                   | LLM risks that intersect with MCP: prompt injection, excessive agency, supply chain; see [framework-mapping.md](framework-mapping.md) |
 | [NIST AI Risk Management Framework (AI RMF 1.0)](https://www.nist.gov/itl/ai-risk-management-framework)                            | Govern, Map, Measure, Manage functions: see [framework-mapping.md](framework-mapping.md)                     |
 | [ISO/IEC 42001:2023](https://www.iso.org/standard/81230.html)                                                                      | AI management system standard: see [framework-mapping.md](framework-mapping.md)                              |
 | [Awesome Agentic MCP Security List](https://github.com/vermava/awesome-agentic-mcp-security)                                       | Curated tools, research, and community guidance as the MCP landscape evolves                                 |
@@ -2060,7 +2060,7 @@ These sources inform the controls and language used throughout this guide. Secur
 
 ---
 
-## Practitioner Checklist
+## Appendix Practitioner Checklist
 
 Use this checklist to assess readiness before presenting MCP governance to executive leadership or a risk committee.
 

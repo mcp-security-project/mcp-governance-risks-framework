@@ -3,7 +3,7 @@
 
 **Purpose:** Map MCP Governance & Risk Model controls to established security and AI governance frameworks. Use this appendix for compliance audits, gap assessments, and alignment with existing organizational programs.
 
-**Related guide:** This mapping references the [MCP Governance & Risk Framework v1.0](mcp-governance-risk-framework-v1.0.md), which contains **six chapters** (Executive Summary through Risk Scoring) plus a **closing appendix** (control catalog, evidence pack, hardening, detection/IR, and checklists). There are no separate Chapters 7–15 in v1.0 — approval workflow, monitoring, incident response, and metrics content lives in Chapters 1, 3, 4, 6, and the appendix sections linked below.
+**Related guide:** This mapping references the [MCP Governance & Risk Framework v1.0](mcp-governance-risk-framework-v1.0.md), which contains **six chapters** (Executive Summary through Risk Scoring) plus a **closing appendix** (control catalog, evidence pack, automated evidence collection, client and host governance, cross-server trust and network exposure test cases, detection/IR, and checklists). Approval workflow, monitoring, incident response, and metrics content lives in Chapters 1, 3, 4, 6, and the appendix sections linked below.
 
 ---
 
@@ -72,7 +72,7 @@ MCP governance intersects with LLM security risks because agents use LLMs to dec
 | 8.1: Operational planning | [Ch. 4](mcp-governance-risk-framework-v1.0.md#chapter-4-mcp-asset-inventory), [Ch. 4 — Inventory Maintenance](mcp-governance-risk-framework-v1.0.md#inventory-maintenance) | Governance lifecycle from intake through decommission |
 | 8.2: AI system impact assessment | [Ch. 2](mcp-governance-risk-framework-v1.0.md#mcp-specific-attack-patterns), [Ch. 5](mcp-governance-risk-framework-v1.0.md#worked-classification-examples) | Scenario-specific threat models for Tier 3–4 |
 | 8.3: Data for AI systems | [Ch. 4 — Required fields](mcp-governance-risk-framework-v1.0.md#required-fields), [Ch. 6 — The Eight Risk Factors](mcp-governance-risk-framework-v1.0.md#the-eight-risk-factors) | Data scope documentation; DLP requirements by tier |
-| 8.4: Third-party relationships | [Appendix — Evidence Pack](mcp-governance-risk-framework-v1.0.md#evidence-pack-tier-2-approvals), [Appendix — Formal Control Catalog](mcp-governance-risk-framework-v1.0.md#formal-control-catalog) (MCP-09) | Vendor questionnaire outcomes and SBOM evidence |
+| 8.4: Third-party relationships | [Appendix — Evidence Pack](mcp-governance-risk-framework-v1.0.md#evidence-pack-tier-2-approvals), [Appendix — Formal Control Catalog](mcp-governance-risk-framework-v1.0.md#formal-control-catalog) (MCP-09) | Vendor review outcomes and SBOM evidence |
 | 9.1: Monitoring and measurement | [Ch. 1 — Step 5](mcp-governance-risk-framework-v1.0.md#step-5-define-monthly-metrics), [Appendix — Detection and Incident Response](mcp-governance-risk-framework-v1.0.md#detection-and-incident-response) | Continuous monitoring and monthly KPIs |
 | 9.2: Internal audit | [Ch. 4 — Inventory Maintenance](mcp-governance-risk-framework-v1.0.md#inventory-maintenance), [Appendix — Formal Control Catalog](mcp-governance-risk-framework-v1.0.md#formal-control-catalog) (MCP-07) | Periodic review cadence by tier |
 | 10.1: Continual improvement | [Appendix — Detection and Incident Response](mcp-governance-risk-framework-v1.0.md#detection-and-incident-response) | Post-incident review; governance gap remediation |

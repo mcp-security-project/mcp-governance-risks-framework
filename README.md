@@ -11,11 +11,11 @@ MCP adoption is accelerating across engineering teams. Agents can read wikis, op
 ## What's in this repository
 
 
-| Document                                                                       | Description                                                                                                  |
-| ------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------ |
-| [mcp-governance-risk-framework-v1.0.md](mcp-governance-risk-framework-v1.0.md) | **Main guide (v1.0)**: inventory, classification, risk scoring, governance principles, and rollout guidance |
+| Document                                                                       | Description                                                                                                      |
+| ------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------- |
+| [mcp-governance-risk-framework-v1.0.md](mcp-governance-risk-framework-v1.0.md) | **Main guide (v1.0)**: inventory, classification, risk scoring, governance principles, and rollout guidance      |
 | [framework-mapping.md](framework-mapping.md)                                   | **Framework mapping**: control mappings to OWASP MCP Top 10, OWASP LLM Top 10, NIST AI RMF, ISO 42001, and SOC 2 |
-| [reference.md](reference.md)                                                   | **Reference links**: curated external URLs for MCP security, threat modeling, vendor review, and standards |
+| [reference.md](reference.md)                                                   | **Reference links**: curated external URLs for MCP security, threat modeling, vendor review, and standards       |
 
 
 ### Framework v1.0 scope
@@ -28,7 +28,7 @@ The v1.0 guide covers six core chapters plus a closing appendix. Treat the conte
 4. [Chapter 4: MCP Asset Inventory](mcp-governance-risk-framework-v1.0.md#chapter-4-mcp-asset-inventory)
 5. [Chapter 5: MCP Server Classification Model](mcp-governance-risk-framework-v1.0.md#chapter-5-mcp-server-classification-model)
 6. [Chapter 6: MCP Risk Scoring Model](mcp-governance-risk-framework-v1.0.md#chapter-6-mcp-risk-scoring-model)
-7. [Appendix: Closing](mcp-governance-risk-framework-v1.0.md#appendix-closing) — control catalog, evidence pack, automated evidence collection and enforcement, client and host governance, authorization and network exposure test cases, detection and incident response, ten-question maturity check, glossary, and practitioner checklist
+7. [Appendix: Closing](mcp-governance-risk-framework-v1.0.md#appendix-closing) — control catalog, evidence pack, automated evidence collection and enforcement, client and host governance, cross-server trust test cases, authorization and network exposure test cases, detection and incident response, ten-question maturity check, glossary, and practitioner checklist
 
 **Not in v1.0 (planned for future releases):** separate approval-workflow chapters, intake forms, risk register templates, and vendor questionnaires. Use the in-guide checklists and evidence pack until those artifacts ship.
 
@@ -38,7 +38,7 @@ The v1.0 guide covers six core chapters plus a closing appendix. Treat the conte
 
 ### CISO / Security leadership
 
-Read [Chapter 1: Executive Summary](mcp-governance-risk-framework-v1.0.md#chapter-1-executive-summary) for the business case, four non-negotiable governance rules, and a [90-day rollout plan](mcp-governance-risk-framework-v1.0.md#practical-rollout-plan-90-days). Use the [Ten Questions](mcp-governance-risk-framework-v1.0.md#ten-questions-every-security-leader-should-be-able-to-answer) maturity check and [Practitioner Checklist](mcp-governance-risk-framework-v1.0.md#practitioner-checklist) in the appendix before presenting to a risk committee.
+Read [Chapter 1: Executive Summary](mcp-governance-risk-framework-v1.0.md#chapter-1-executive-summary) for the business case, four non-negotiable governance rules, and a [90-day rollout plan](mcp-governance-risk-framework-v1.0.md#practical-rollout-plan-90-days). Use the [Ten Questions](mcp-governance-risk-framework-v1.0.md#ten-questions-every-security-leader-should-be-able-to-answer) maturity check and [Appendix Practitioner Checklist](mcp-governance-risk-framework-v1.0.md#appendix-practitioner-checklist) before presenting to a risk committee.
 
 ### AppSec / Security architecture
 
@@ -74,14 +74,14 @@ These four rules are designed to be adopted as organizational policy. They are a
 ### Six principles at a glance
 
 
-| # | Principle | One-line rule |
-| - | --------- | ------------- |
-| 1 | No MCP Without Ownership | No owner = no approval |
-| 2 | Classify Before You Connect | Know the risk tier before connecting |
-| 3 | Least Privilege for Tools | Minimum permissions per tool, not per server name |
-| 4 | Human Approval Must Be Meaningful | HITL must show what, where, who, and impact |
-| 5 | Auditability Requires Production Logging | No logging = no production use |
-| 6 | The Approved Path Must Beat Shadow IT | Pre-approved patterns and SLAs must be faster than unofficial install |
+| #   | Principle                                | One-line rule                                                         |
+| --- | ---------------------------------------- | --------------------------------------------------------------------- |
+| 1   | No MCP Without Ownership                 | No owner = no approval                                                |
+| 2   | Classify Before You Connect              | Know the risk tier before connecting                                  |
+| 3   | Least Privilege for Tools                | Minimum permissions per tool, not per server name                     |
+| 4   | Human Approval Must Be Meaningful        | HITL must show what, where, who, and impact                           |
+| 5   | Auditability Requires Production Logging | No logging = no production use                                        |
+| 6   | The Approved Path Must Beat Shadow IT    | Pre-approved patterns and SLAs must be faster than unofficial install |
 
 
 ---
@@ -126,4 +126,8 @@ This framework is intended to evolve with the MCP ecosystem. It is maintained as
 
 ## License
 
-See repository license terms. Framework content is provided for organizational governance use; adapt policy language and forms to your environment and legal requirements.
+No `LICENSE` file is in this repository yet. Framework content is provided for organizational governance use; adapt policy language and forms to your environment and legal requirements.
+
+---
+
+[Main guide](mcp-governance-risk-framework-v1.0.md) · [Framework mapping](framework-mapping.md) · [Reference links](reference.md)

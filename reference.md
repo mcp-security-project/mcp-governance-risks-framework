@@ -339,7 +339,7 @@ The [README](README.md) describes this repository as part of the broader MCP sec
 
 | Resource                                     | Status                | URL / Notes                                                                                                                                                    |
 | -------------------------------------------- | --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **MCP Governance & Risk Model** (this guide) | In development        | This repository                                                                                                                                                |
+| **MCP Governance & Risk Model** (this guide) | v1.0 published        | [Main guide](mcp-governance-risk-framework-v1.0.md) in this repository                                                                                         |
 | **MCP Security Taxonomy**                    | URL TBD               | Shared risk language; see [MCP Landscape paper](#research-taxonomies--threat-models) and [SAF-MCP](#standards-baselines--certification) for interim taxonomies |
 | **MCP Testing Guide**                        | URL TBD               | Validates whether controls work; see [MCPSEC](#standards-baselines--certification) and [Appsecco checklist](#standards-baselines--certification)               |
 | **OWASP MCP Top 10**                         | Published (beta v0.1) | Defines *what* can go wrong — see [OWASP MCP Top 10](#owasp-mcp-top-10)                                                                                        |
@@ -377,105 +377,7 @@ The [README](README.md) describes this repository as part of the broader MCP sec
 
 ## Internet Review Additions — 2026-06-30
 
-These references were identified during an internet review and are recommended additions before publishing. They emphasize official protocol documentation, governance/community process, security-relevant SEPs, current NIST incident response guidance, and platform implementation references.
-
-### Official MCP Documentation Gaps
-
-| Resource | URL | Why add it |
-|----------|-----|------------|
-| MCP Specification (2025-06-18) | https://modelcontextprotocol.io/specification/2025-06-18 | Official intermediate spec version between 2025-03-26 and 2025-11-25 |
-| MCP Key Changes (2025-06-18) | https://modelcontextprotocol.io/specification/2025-06-18/changelog | Helps reviewers understand version-specific behavior changes |
-| MCP Authorization (2025-06-18) | https://modelcontextprotocol.io/specification/2025-06-18/basic/authorization | Versioned auth reference for OAuth and audience validation |
-| MCP Transports (2025-06-18) | https://modelcontextprotocol.io/specification/2025-06-18/basic/transports | Useful for local vs. remote server risk review |
-| MCP Tools (2025-06-18) | https://modelcontextprotocol.io/specification/2025-06-18/server/tools | Canonical tool behavior reference for classification and HITL review |
-| MCP Sampling (2025-06-18) | https://modelcontextprotocol.io/specification/2025-06-18/client/sampling | Important for server-initiated model calls and recursive agent behavior |
-| MCP Elicitation (2025-06-18) | https://modelcontextprotocol.io/specification/2025-06-18/client/elicitation | Relevant to user data collection and consent review |
-| MCP Roots (2025-06-18) | https://modelcontextprotocol.io/specification/2025-06-18/client/roots | Relevant to filesystem and workspace boundary review |
-| MCP Logging utility (2025-11-25) | https://modelcontextprotocol.io/specification/2025-11-25/server/utilities/logging | Useful for audit and monitoring discussions |
-| Understanding Authorization in MCP | https://modelcontextprotocol.io/docs/tutorials/security/authorization | Practical auth implementation guide |
-| MCP Client Best Practices | https://modelcontextprotocol.io/docs/develop/clients/client-best-practices | Useful for host/client-side governance, tool filtering, and multi-server risk |
-| Connect to remote MCP servers | https://modelcontextprotocol.io/docs/develop/connect-remote-servers | Remote server deployment and connection guidance |
-| MCP Inspector | https://modelcontextprotocol.io/docs/tools/inspector | Useful for testing, debugging, and review evidence |
-| MCP SDKs | https://modelcontextprotocol.io/docs/sdk | Official SDK reference for implementation and vendor review |
-
-### MCP Governance, Community, and Security Process
-
-| Resource | URL | Why add it |
-|----------|-----|------------|
-| MCP Governance and Stewardship | https://modelcontextprotocol.io/community/governance | Official governance model for the protocol project |
-| MCP Security Policy | https://modelcontextprotocol.io/community/security | Vulnerability reporting and disclosure process |
-| MCP Security Interest Group Charter | https://modelcontextprotocol.io/community/interest-groups/security | Official security group scope |
-| MCP Authorization Interest Group Charter | https://modelcontextprotocol.io/community/interest-groups/auth | Useful for tracking authorization evolution |
-| MCP Enterprise-Managed Authorization Charter | https://modelcontextprotocol.io/community/interest-groups/enterprise-managed-authorization | Enterprise auth governance direction |
-| MCP Working and Interest Groups | https://modelcontextprotocol.io/community/working-interest-groups | How MCP governance groups operate |
-| MCP Feature Lifecycle and Deprecation Policy | https://modelcontextprotocol.io/community/feature-lifecycle | Helps organizations track spec feature maturity |
-| MCP Roadmap | https://modelcontextprotocol.io/development/roadmap | Useful for governance planning and version monitoring |
-| MCP SEPs index | https://modelcontextprotocol.io/seps/index | Canonical list of Specification Enhancement Proposals |
-
-### Security-Relevant MCP SEPs
-
-| Resource | URL | Why add it |
-|----------|-----|------------|
-| SEP-932: Model Context Protocol Governance | https://modelcontextprotocol.io/seps/932-model-context-protocol-governance | Official governance SEP for MCP project process |
-| SEP-1024: MCP Client Security Requirements for Local Server Installation | https://modelcontextprotocol.io/seps/1024-mcp-client-security-requirements-for-local-server- | Directly relevant to shadow MCP, local install risk, and client trust |
-| SEP-414: OpenTelemetry Trace Context Propagation Conventions | https://modelcontextprotocol.io/seps/414-request-meta | Useful for monitoring, traceability, and audit correlation |
-| SEP-985: Align OAuth 2.0 Protected Resource Metadata with RFC 9728 | https://modelcontextprotocol.io/seps/985-align-oauth-20-protected-resource-metadata-with-rf | Important for OAuth metadata and resource-server security |
-| SEP-990: Enterprise IdP Policy Controls During MCP OAuth Flows | https://modelcontextprotocol.io/seps/990-enable-enterprise-idp-policy-controls-during-mcp-o | Enterprise identity policy enforcement |
-| SEP-991: URL-Based Client Registration Using OAuth Client ID Metadata Documents | https://modelcontextprotocol.io/seps/991-enable-url-based-client-registration-using-oauth-c | Relevant to dynamic registration and client trust |
-| SEP-1046: OAuth Client Credentials Flow in Authorization | https://modelcontextprotocol.io/seps/1046-support-oauth-client-credentials-flow-in-authoriza | Relevant to service-account and machine-to-machine MCP use |
-| SEP-2207: OIDC-Flavored Refresh Token Guidance | https://modelcontextprotocol.io/seps/2207-oidc-refresh-token-guidance | Relevant to token lifecycle governance |
-| SEP-2243: HTTP Header Standardization for Streamable HTTP Transport | https://modelcontextprotocol.io/seps/2243-http-standardization | Useful for gateway and transport security reviews |
-| SEP-2468: Recommend Issuer Claim for Auth | https://modelcontextprotocol.io/seps/2468-recommend-issuer-claim-for-auth | Relevant to token issuer validation |
-| SEP-2577: Deprecate Roots, Sampling, and Logging | https://modelcontextprotocol.io/seps/2577-deprecate-roots-sampling-and-logging | Important lifecycle note for governance documents referencing these features |
-
-### OWASP and AppSec References Worth Adding
-
-| Resource | URL | Why add it |
-|----------|-----|------------|
-| OWASP AI Agent Security Cheat Sheet | https://cheatsheetseries.owasp.org/cheatsheets/AI_Agent_Security_Cheat_Sheet.html | Agentic security guidance adjacent to MCP governance |
-| OWASP LLM Prompt Injection Prevention Cheat Sheet | https://cheatsheetseries.owasp.org/cheatsheets/LLM_Prompt_Injection_Prevention_Cheat_Sheet.html | Useful for prompt/tool-output injection controls |
-| OWASP RAG Security Cheat Sheet | https://cheatsheetseries.owasp.org/cheatsheets/RAG_Security_Cheat_Sheet.html | Relevant when MCP servers expose retrieval and knowledge-base tools |
-| OWASP Logging Cheat Sheet | https://cheatsheetseries.owasp.org/cheatsheets/Logging_Cheat_Sheet.html | Supports audit log design in [Principle 5](mcp-governance-risk-framework-v1.0.md#principle-5-auditability-requires-production-logging) and [Detection and Incident Response](mcp-governance-risk-framework-v1.0.md#detection-and-incident-response) |
-| OWASP Secrets Management Cheat Sheet | https://cheatsheetseries.owasp.org/cheatsheets/Secrets_Management_Cheat_Sheet.html | Supports MCP01/token and secret handling controls |
-| OWASP Software Supply Chain Security Cheat Sheet | https://cheatsheetseries.owasp.org/cheatsheets/Software_Supply_Chain_Security_Cheat_Sheet.html | Supports third-party and OSS MCP review |
-
-### Updated Governance and Incident Response References
-
-| Resource | URL | Why add it |
-|----------|-----|------------|
-| NIST SP 800-61 Rev. 3: Incident Response Recommendations and Considerations for Cybersecurity Risk Management | https://csrc.nist.gov/pubs/sp/800/61/r3/final | Current final incident response guidance; supersedes Rev. 2 |
-| NIST SP 800-61 Rev. 3 DOI | https://doi.org/10.6028/NIST.SP.800-61r3 | Stable DOI for citation |
-| NIST AI RMF Playbook | https://airc.nist.gov/airmf-resources/playbook/ | Official implementation suggestions for AI RMF outcomes |
-| NIST AI RMF Crosswalk Documents | https://airc.nist.gov/airmf-resources/crosswalks/ | Useful for compliance mappings |
-| NIST Cybersecurity Framework 2.0 | https://www.nist.gov/cyberframework | Useful because SP 800-61 Rev. 3 is framed as a CSF 2.0 Community Profile |
-
-### Platform Implementation References
-
-| Resource | URL | Why add it |
-|----------|-----|------------|
-| OpenAI API: MCP and Connectors | https://developers.openai.com/api/docs/guides/tools-connectors-mcp | Platform implementation reference for hosted MCP and connectors |
-| OpenAI Agents SDK: MCP | https://openai.github.io/openai-agents-python/mcp/ | SDK reference including transports, approvals, filtering, and tracing |
-| OpenAI Apps SDK examples | https://developers.openai.com/apps-sdk/build/examples | Useful where MCP Apps or interactive components are in scope |
-| Microsoft Semantic Kernel: MCP concept sample | https://learn.microsoft.com/semantic-kernel/concepts/plugins/adding-mcp-plugins | Platform implementation reference for MCP plugins |
-
-### Research References Worth Considering
-
-| Resource | URL | Why add it |
-|----------|-----|------------|
-| Breaking the Protocol: Security Analysis of MCP Specification and Prompt Injection Vulnerabilities | https://arxiv.org/abs/2601.17549 | Protocol-level security analysis and MCPBench / MCPSec discussion |
-| SMCP: Secure Model Context Protocol | https://arxiv.org/abs/2602.01129 | Proposed secure MCP variant with identity, policy, and audit concepts |
-| MCPShield: Security Cognition Layer for Adaptive Trust Calibration | https://arxiv.org/abs/2602.14281 | Runtime trust and tool validation research |
-| Making REST APIs Agent-Ready: From OpenAPI to MCP Servers | https://arxiv.org/abs/2507.16044 | Useful for API-to-MCP governance and generated server review |
-| Making OpenAPI Documentation Agent-Ready | https://arxiv.org/abs/2605.14312 | Useful for API documentation quality and tool-readiness governance |
-
-### Suggested Existing-Reference Updates
-
-| Existing reference | Suggested update |
-|--------------------|------------------|
-| NIST SP 800-61 Rev. 2 | Keep Rev. 2 only for historical compatibility; add Rev. 3 as the current primary IR reference |
-| MCP Security Best Practices draft path | Prefer the docs tutorial URL for general readers: `https://modelcontextprotocol.io/docs/tutorials/security/security_best_practices`; keep versioned spec paths when citing a specific protocol version |
-| MCP individual OWASP links | Re-check before publishing; OWASP MCP Top 10 remains beta and individual URLs may change |
-| MCP Specification (2025-11-25) | Keep as current/later version reference, but add 2025-06-18 because many ecosystem docs and implementations still refer to it |
+The recommendations from this review were incorporated into the sections above during v1.0 publication. This heading is retained for change traceability only.
 
 ---
 
