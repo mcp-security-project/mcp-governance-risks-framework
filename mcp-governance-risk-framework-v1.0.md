@@ -901,6 +901,11 @@ Every MCP server, regardless of source, tier, or deployment model, must be recor
 | Requesting team         | Team that requested access                     | Platform Engineering                                                          | Escalation and communication                            |
 | Source / vendor         | Internal, OSS, commercial, community           | Internal fork of `@modelcontextprotocol/server-github`                        | Determines vendor review depth                          |
 | Deployment location     | Where the server runs                          | Internal K8s cluster, developer laptop, vendor SaaS                           | Affects exposure scoring                                |
+| Connection / launch target | Remote endpoint or exact local executable and arguments | `https://mcp.example.com/mcp` or `node server.js --stdio`              | Identifies what the host connects to or executes        |
+| Artifact provenance     | Package, repository, publisher, and immutable artifact identifier | Repository URL, release tag, commit, or digest                    | Distinguishes the reviewed artifact from mutable code   |
+| Code retrieval behavior | Whether launch can download or update code     | Pinned local binary; package runner fetches on first use                      | Reveals code that may change between review and runtime |
+| Runtime identity        | Parent MCP host and OS user or service account | Desktop host process running server as `jane.smith`                           | Connects configuration to effective process privileges  |
+| Effective local access  | Filesystem, environment, credential, and network access available to the process | Project directory, named secret references, approved API destination | Captures the local blast radius without storing secrets |
 | Authentication model    | How the server authenticates                   | OAuth 2.1 with corporate GitHub App (HTTP); local credential handling (STDIO) | Baseline compliance check                               |
 | Data accessed           | Classification of data touched                 | Internal source code (confidential)                                           | Drives tier assignment                                  |
 | Tools / actions exposed | Server-scoped tool identities and capabilities | (`prod-github-repo-read`, `search_repos`) (read)                              | Prevents policy and inventory ambiguity across servers |
@@ -925,7 +930,7 @@ MCP servers appear in environments through multiple channels. No single discover
 
 ### Method 1: Configuration scanning
 
-**What it finds:** MCP entries in config files on endpoints and in repositories.
+**What it finds:** MCP entries in config files on endpoints and in repositories, including local launch commands and remote endpoints.
 
 **Where to look:**
 
@@ -943,10 +948,12 @@ MCP servers appear in environments through multiple channels. No single discover
 
 **How to run:**
 
-1. Deploy configuration scanning via endpoint management (MDM, EDR config inspection) or repository scanning (GitHub Advanced Security, GitLab secret/detection scans adapted for MCP patterns).
-2. Search for common MCP indicators: `"mcpServers"`, `modelcontextprotocol`, MCP transport URLs, known MCP package names.
-3. Deduplicate findings: the same server may appear on many developer laptops.
-4. Compare against inventory; unmatched entries are candidate shadow MCP.
+1. Deploy configuration scanning through managed endpoint or repository scanning capabilities.
+2. Search for common MCP indicators: `"mcpServers"`, `modelcontextprotocol`, MCP transport URLs, and known MCP package names.
+3. Parse structured configuration where possible and record the executable, arguments, package or repository reference, pinned version, working directory, environment variable names, and remote endpoint. Record secret references or variable names, never secret values.
+4. Flag launchers that can retrieve mutable code at startup, including unpinned package versions, branches, or tags.
+5. Deduplicate findings: the same server may appear on many endpoints.
+6. Compare findings against inventory; unmatched entries are candidate shadow MCP.
 
 **Limitations:** Does not find SaaS-hosted MCP with no local config. May miss personal machines not under MDM.
 
@@ -959,32 +966,35 @@ MCP servers appear in environments through multiple channels. No single discover
 **Techniques:**
 
 
-| Technique                      | What it detects                                                   |
-| ------------------------------ | ----------------------------------------------------------------- |
-| Outbound connection monitoring | Agent hosts connecting to MCP server endpoints                    |
-| Process monitoring             | New processes listening on MCP transport ports (stdio, SSE, HTTP) |
-| API gateway logs               | MCP protocol traffic patterns through corporate proxies           |
-| DNS logs                       | Lookups for known MCP hosting domains                             |
-| Cloud network flow logs        | MCP servers in VPCs talking to internal APIs                      |
+| Technique                      | What it detects                                                                                |
+| ------------------------------ | ---------------------------------------------------------------------------------------------- |
+| Process ancestry monitoring    | Child processes launched by MCP hosts through package runners, language runtimes, or binaries |
+| Executable and artifact identity | Process path, command line, package or binary version, signature, hash, and runtime user      |
+| Network connection monitoring  | Remote MCP connections, local HTTP listeners, and outbound destinations used by any server    |
+| API gateway logs               | MCP protocol traffic patterns through corporate proxies                                        |
+| DNS logs                       | Lookups for MCP hosting domains and downstream destinations                                    |
+| Cloud network flow logs        | MCP servers in VPCs talking to internal or external APIs                                       |
 
 
 **How to run:**
 
-1. Baseline normal agent traffic for 2–4 weeks before alerting.
-2. Alert on connections to unknown MCP endpoints.
-3. Correlate with inventory: approved servers should match; others trigger shadow MCP workflow (see [Approved vs. Shadow MCP](#approved-vs-shadow-mcp)).
+1. Correlate configured launch commands with observed parent and child processes. A direct stdio server normally has no listening port.
+2. Resolve wrapper chains where possible, for example from a desktop host through a package runner or language runtime to the process that implements the server.
+3. Compare the executable path, artifact identifier, command, runtime user, and parent host with the approved inventory record.
+4. Baseline normal network behavior before alerting, then monitor remote endpoints, local listeners, and unexpected outbound destinations without assuming a standard MCP port.
+5. Treat unmatched configurations, processes, artifacts, and remote connections as candidate shadow MCP (see [Approved vs. Shadow MCP](#approved-vs-shadow-mcp)).
 
-**Limitations:** Encrypted traffic may hide payload details. Requires tuning to reduce false positives.
+**Limitations:** Short-lived child processes and layered launchers may obscure the final artifact. Encrypted traffic may hide payload details, and unmanaged endpoints may provide no process telemetry. Direct stdio use cannot be discovered through network monitoring alone.
 
 ---
 
-### Method 3: Developer surveys and self-reporting
+### Method 3: User surveys and self-reporting
 
-**What it finds:** Servers developers know about but scanners miss, especially new or personal setups.
+**What it finds:** Servers that developers and other users know about but scanners miss, especially new or personal setups.
 
 **How to run:**
 
-1. Include MCP usage attestation in developer onboarding: "List all MCP servers you use."
+1. Include MCP usage attestation in onboarding and AI acceptable-use reviews: "List all MCP servers you use."
 2. Run periodic campaigns (quarterly): "Self-report MCP usage by [date]: amnesty for shadow MCP submitted voluntarily."
 3. Link from internal developer documentation and AI platform admin consoles.
 
@@ -1102,6 +1112,8 @@ Owners must report within 5 business days:
 
 - New tools added to an existing server
 - Version upgrades (especially major versions)
+- Launch command, artifact source, digest, or code retrieval behavior changes
+- Filesystem, environment, credential, runtime identity, or network access changes
 - Scope changes (new data sources, new user groups)
 - Authentication model changes
 - Deployment location changes
@@ -1755,8 +1767,8 @@ The v1.0 guide aligns with security baselines conceptually; this catalog lists c
 | MCP-06     | HITL for write/delete/deploy                                                                                                                                                                                                                             | Optional     | Recommended  | Required | Required | Screenshot or test of approval prompt                                                                                                                           |
 | MCP-07     | Periodic review per tier cadence                                                                                                                                                                                                                         | Required     | Required     | Required | Required | Review date in risk register                                                                                                                                    |
 | MCP-08     | Tool inventory and highest-risk classification                                                                                                                                                                                                           | Required     | Required     | Required | Required | Tool list with tier rationale                                                                                                                                   |
-| MCP-09     | Vendor/SBOM review for external servers                                                                                                                                                                                                                  | If external  | Required     | Required | Required | SBOM, CVE scan, version pin                                                                                                                                     |
-| MCP-10     | Local MCP hardening (if local)                                                                                                                                                                                                                           | Required     | Required     | Required | Required | Hardening checklist signed off                                                                                                                                  |
+| MCP-09     | Provenance and SBOM review for external servers                                                                                                                                                                                                          | If external  | Required     | Required | Required | Package or repository source, publisher, immutable version or digest, SBOM, and CVE scan                                                                                               |
+| MCP-10     | Local MCP hardening and runtime provenance (if local)                                                                                                                                                                                                    | Required     | Required     | Required | Required | Hardening checklist plus approved launch command, artifact identity, runtime user, and effective-access record                                                                         |
 | MCP-11     | Host/client allowlist enforcement                                                                                                                                                                                                                        | Recommended  | Required     | Required | Required | Platform config export                                                                                                                                          |
 | MCP-12     | Tool chaining and cross-server trust review for agent configurations                                                                                                                                                                                      | Required     | Required     | Required | Required | Approved combined configuration, server-scoped tool inventory, collision test, and provenance review                                                                                                  |
 | MCP-13     | Tool output treated as untrusted input                                                                                                                                                                                                                   | Recommended  | Required     | Required | Required | Client/host output-handling review: outputs delimited or structured; no raw tool returns promoted to system instructions without validation                     |
@@ -1778,6 +1790,7 @@ For every Tier 2 and above approval, collect and retain an **evidence pack** in 
 | Logging sample                         | Demonstrates required fields are captured and SIEM-mappable                                                                                                                |
 | HITL screenshot for write actions      | Confirms meaningful human approval prompts for write/delete/deploy tools                                                                                                   |
 | SBOM or dependency scan                | Required for external/OSS servers: version pin and CVE review                                                                                                              |
+| Local runtime record (if local)        | Records the approved launch command, artifact identity, parent host, runtime user, and effective filesystem, environment, credential, and network access                   |
 | Owner and risk acceptance record       | Named owner, approver, date, and residual risk acceptance for conditional approvals                                                                                        |
 | Approved combined server configuration | Documents configured server IDs, server-scoped tools, trust levels, collision handling, and isolation decisions for agent configurations using multiple servers           |
 | Output-handling review (optional)      | For Tier 2+ agents that chain read + write servers: documents delimiter tagging, output filtering, or structured vs. free-text returns ([MCP-13](#formal-control-catalog)) |
@@ -1830,9 +1843,12 @@ Run these tests for hosts or clients that aggregate tools from multiple servers.
 
 Apply these requirements to any MCP server running locally, whether it uses stdio or HTTP:
 
+- **Startup command approval**: display the exact executable, arguments, working directory, and code source before first launch and whenever they change
+- **Artifact pinning**: prefer immutable versions, commits, or digests; do not allow an approved launch configuration to retrieve a different artifact without review
 - **Sandboxing**: run server process with restricted OS privileges; no root/admin unless formally justified
 - **Restricted filesystem access**: limit read/write paths to project directories; prohibit home directory or system path access by default
 - **Restricted network access**: block outbound network unless required for approved use case
+- **Restricted environment**: pass only required environment variables and credential references; do not inherit the full user environment by default
 - **Consent display**: host must show user which tools and servers are active before first use
 - **Command visibility**: shell/command execution tools must display command text before execution
 - **Dangerous command warnings**: warn on destructive patterns (rm -rf, DROP TABLE, IAM changes)
@@ -1890,12 +1906,14 @@ Forward these fields to SIEM for Tier 2+ servers (align with [Principle 5](#prin
 
 - `timestamp`, `user_id`, `agent_session_id`, `mcp_host`, `mcp_server`, `tool_name`, `parameters_redacted`, `outcome`, `authorization_result`, `source_ip`
 
+For locally launched servers, also retain `parent_process`, `process_path`, `command_hash`, `artifact_digest`, and `runtime_user` where endpoint telemetry is available. Redact credentials and sensitive argument values before collection.
+
 ### Detection use cases
 
 
 | Detection                       | Trigger                                                               | Response                                    |
 | ------------------------------- | --------------------------------------------------------------------- | ------------------------------------------- |
-| Shadow MCP connection           | Tool call from unlisted server                                        | Alert AppSec; initiate shadow MCP workflow  |
+| Shadow MCP connection           | Unlisted configuration, local process, artifact, or remote connection | Alert AppSec; initiate shadow MCP workflow  |
 | Cross-tool exfiltration pattern | Read from sensitive source followed by write/send within same session | Alert; suspend agent session pending review |
 | Auth failure spike              | Repeated audience or scope validation failures                        | Alert; block server pending investigation   |
 | Privileged tool after hours     | Tier 4 tool invocation outside business hours                         | Alert owner and AppSec                      |
@@ -1904,7 +1922,7 @@ Forward these fields to SIEM for Tier 2+ servers (align with [Principle 5](#prin
 
 ### MCP incident response playbook (summary)
 
-1. **Identify**: owner, tier, connected servers, agent host, active sessions
+1. **Identify**: owner, tier, connected servers, agent host, local process ancestry, artifact identity, and active sessions
 2. **Contain**: revoke OAuth tokens, remove from host allowlists, disable server process
 3. **Investigate**: reconstruct tool call timeline from SIEM; check for tool chaining abuse
 4. **Eradicate**: patch misconfiguration, rotate credentials, remove malicious tools or dependencies
@@ -1988,6 +2006,8 @@ Use this checklist to assess readiness before presenting MCP governance to execu
 
 - [ ] Inventory process defined (formal intake or interim spreadsheet)
 - [ ] First inventory pass completed: all known servers captured, including suspected shadow MCP
+- [ ] Local server records include the approved launch command, artifact provenance, code retrieval behavior, runtime identity, and effective access
+- [ ] Configuration findings are reconciled with observed processes and remote connections; direct stdio discovery does not rely on network monitoring
 - [ ] Classification model (Tier 0–4) communicated to engineering and AI teams
 - [ ] Risk register established as single source of truth
 
