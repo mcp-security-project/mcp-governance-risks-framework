@@ -28,7 +28,9 @@ The v1.0 guide covers six core chapters plus a closing appendix. Treat the conte
 4. [Chapter 4: MCP Asset Inventory](mcp-governance-risk-framework-v1.0.md#chapter-4-mcp-asset-inventory)
 5. [Chapter 5: MCP Server Classification Model](mcp-governance-risk-framework-v1.0.md#chapter-5-mcp-server-classification-model)
 6. [Chapter 6: MCP Risk Scoring Model](mcp-governance-risk-framework-v1.0.md#chapter-6-mcp-risk-scoring-model)
-7. [Appendix: Closing](mcp-governance-risk-framework-v1.0.md#appendix-closing) — control catalog, evidence pack, automated evidence collection and enforcement, authorization test cases, detection and incident response, and practitioner checklist
+7. [Appendix: Closing](mcp-governance-risk-framework-v1.0.md#appendix-closing) — control catalog, evidence pack, automated evidence collection and enforcement, client and host governance, authorization and network exposure test cases, detection and incident response, ten-question maturity check, glossary, and practitioner checklist
+
+**Not in v1.0 (planned for future releases):** separate approval-workflow chapters, intake forms, risk register templates, and vendor questionnaires. Use the in-guide checklists and evidence pack until those artifacts ship.
 
 ---
 
@@ -36,15 +38,19 @@ The v1.0 guide covers six core chapters plus a closing appendix. Treat the conte
 
 ### CISO / Security leadership
 
-Read [Chapter 1: Executive Summary](mcp-governance-risk-framework-v1.0.md#chapter-1-executive-summary) for the business case, four non-negotiable governance rules, and a 90-day rollout plan. Use the [Practitioner Checklist](mcp-governance-risk-framework-v1.0.md#practitioner-checklist) in the appendix before presenting to a risk committee.
+Read [Chapter 1: Executive Summary](mcp-governance-risk-framework-v1.0.md#chapter-1-executive-summary) for the business case, four non-negotiable governance rules, and a [90-day rollout plan](mcp-governance-risk-framework-v1.0.md#practical-rollout-plan-90-days). Use the [Ten Questions](mcp-governance-risk-framework-v1.0.md#ten-questions-every-security-leader-should-be-able-to-answer) maturity check and [Practitioner Checklist](mcp-governance-risk-framework-v1.0.md#practitioner-checklist) in the appendix before presenting to a risk committee.
 
 ### AppSec / Security architecture
 
-Start with [Chapter 2](mcp-governance-risk-framework-v1.0.md#chapter-2-why-mcp-needs-governance) and [Chapter 3](mcp-governance-risk-framework-v1.0.md#chapter-3-mcp-governance-principles), then implement [Chapter 4: Asset Inventory](mcp-governance-risk-framework-v1.0.md#chapter-4-mcp-asset-inventory) and the [Classification Model (Chapter 5)](mcp-governance-risk-framework-v1.0.md#chapter-5-mcp-server-classification-model). Use [framework-mapping.md](framework-mapping.md) for OWASP and compliance control mappings; use [reference.md](reference.md) for MCP authorization spec, OWASP MCP Top 10, and other external sources.
+Start with [Chapter 2](mcp-governance-risk-framework-v1.0.md#chapter-2-why-mcp-needs-governance) and [Chapter 3](mcp-governance-risk-framework-v1.0.md#chapter-3-mcp-governance-principles), then implement [Chapter 4: Asset Inventory](mcp-governance-risk-framework-v1.0.md#chapter-4-mcp-asset-inventory) and the [Classification Model (Chapter 5)](mcp-governance-risk-framework-v1.0.md#chapter-5-mcp-server-classification-model). Review [hard gates](mcp-governance-risk-framework-v1.0.md#hard-gates-non-negotiable), [tool chaining](mcp-governance-risk-framework-v1.0.md#tool-chaining-primary-risk), and [client and host governance](mcp-governance-risk-framework-v1.0.md#client-and-host-governance). Use [framework-mapping.md](framework-mapping.md) for OWASP and compliance control mappings; use [reference.md](reference.md) for MCP authorization spec, OWASP MCP Top 10, and other external sources.
+
+### GRC / Compliance
+
+Start with [framework-mapping.md](framework-mapping.md) for OWASP, NIST AI RMF, ISO 42001, and SOC 2 alignment. Use the [Formal Control Catalog](mcp-governance-risk-framework-v1.0.md#formal-control-catalog) and [Evidence Pack](mcp-governance-risk-framework-v1.0.md#evidence-pack-tier-2-approvals) in the appendix for audit evidence requirements by tier.
 
 ### Engineering / Platform teams
 
-Review the [Tier 0–4 classification summary](mcp-governance-risk-framework-v1.0.md#step-2-classify-existing-servers) and [Recommended First Steps](mcp-governance-risk-framework-v1.0.md#recommended-first-steps). Understand that servers are classified by their **highest-risk tool**, not by server name alone.
+Review the [Tier 0–4 classification summary](mcp-governance-risk-framework-v1.0.md#step-2-classify-existing-servers) and [Recommended First Steps](mcp-governance-risk-framework-v1.0.md#recommended-first-steps). Understand that servers are classified by their **highest-risk tool**, not by server name alone. For faster adoption, use the [Pre-Approved MCP Catalog](mcp-governance-risk-framework-v1.0.md#pre-approved-mcp-catalog-paved-road). For local stdio servers, follow [Local MCP Hardening Requirements](mcp-governance-risk-framework-v1.0.md#local-mcp-hardening-requirements).
 
 ### Legal / Privacy / Procurement
 
@@ -54,7 +60,7 @@ Focus on data scope, third-party server review, and vendor trust factors in [Cha
 
 ## Key governance rules
 
-These four rules are designed to be adopted as organizational policy:
+These four rules are designed to be adopted as organizational policy. They are a subset of the [six governance principles](mcp-governance-risk-framework-v1.0.md#the-six-principles-at-a-glance) in Chapter 3.
 
 
 | Rule                                     | Implication                                                |
@@ -65,13 +71,26 @@ These four rules are designed to be adopted as organizational policy:
 | **No review = No enterprise deployment** | Periodic review is mandatory by risk tier                  |
 
 
+### Six principles at a glance
+
+
+| # | Principle | One-line rule |
+| - | --------- | ------------- |
+| 1 | No MCP Without Ownership | No owner = no approval |
+| 2 | Classify Before You Connect | Know the risk tier before connecting |
+| 3 | Least Privilege for Tools | Minimum permissions per tool, not per server name |
+| 4 | Human Approval Must Be Meaningful | HITL must show what, where, who, and impact |
+| 5 | Auditability Requires Production Logging | No logging = no production use |
+| 6 | The Approved Path Must Beat Shadow IT | Pre-approved patterns and SLAs must be faster than unofficial install |
+
+
 ---
 
 ## Quick start (30 days)
 
 1. **Inventory**: Capture every known MCP server, including suspected shadow deployments
 2. **Classify**: Assign Tier 0–4 based on the highest-risk tool each server exposes
-3. **Score**: Apply the eight-factor risk model for nuanced decisions
+3. **Score**: Apply [hard gates](mcp-governance-risk-framework-v1.0.md#hard-gates-non-negotiable) first, then the [eight-factor risk model](mcp-governance-risk-framework-v1.0.md#the-eight-risk-factors) for nuanced decisions
 4. **Publish policy**: Adopt the four governance rules and tier-based control requirements
 5. **Assign owners**: Name business and technical owners for every Tier 2+ server
 6. **Report metrics**: Track inventory coverage, shadow MCP count, and overdue reviews monthly
@@ -101,7 +120,7 @@ These four rules are designed to be adopted as organizational policy:
 
 ## Contributing
 
-This framework is intended to evolve with the MCP ecosystem. If you use it in your organization or have feedback on classification, scoring, or policy language, open an issue or submit a pull request.
+This framework is intended to evolve with the MCP ecosystem. It is maintained as part of the [MCP Security Project](https://github.com/mcp-security-project). If you use it in your organization or have feedback on classification, scoring, or policy language, open an issue or submit a pull request.
 
 ---
 

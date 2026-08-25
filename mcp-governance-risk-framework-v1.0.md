@@ -30,7 +30,7 @@ This v1.0 guide covers six chapters plus an appendix: inventory, classification,
 - **Controls**: technical and operational controls referenced throughout Chapters 2–6 and the control catalog in the appendix
 - **Checklists**: practitioner checklists at the end of each chapter and in the appendix
 
-Future versions may add separate approval workflow chapters, forms, and detailed framework mapping appendices. This v1.0 guide does not include those documents; references to them have been removed or replaced with in-scope guidance.
+Future versions may add separate approval-workflow chapters and intake forms. Compliance framework mappings live in the companion [framework-mapping.md](framework-mapping.md) document; external URLs are in [reference.md](reference.md).
 
 ---
 
@@ -101,7 +101,7 @@ Approval is not the end state. [Chapter 4](#chapter-4-mcp-asset-inventory) and t
 
 Governance fails when unofficial install is faster than official approval. [Principle 6](#principle-6-the-approved-path-must-beat-shadow-it) and the [Pre-Approved MCP Catalog](#pre-approved-mcp-catalog-paved-road) in [Chapter 4](#chapter-4-mcp-asset-inventory) give engineering teams a paved road: self-service or sub-48-hour intake for Tier 0–1 patterns, published SLAs, and full review reserved for Tier 2+. Prohibition and discovery manage residual shadow MCP; the catalog prevents it.
 
-The model is designed to be practical: it includes policy language, metrics, and references to external standards (see [References and Further Reading](#references-and-further-reading)). Detailed control-by-control mappings to OWASP MCP Top 10, OWASP LLM Top 10, NIST AI RMF, ISO 42001, and SOC 2 are not included in v1.0; use [reference.md](reference.md) as a starting point if you need to build those mappings for your organization.
+The model is designed to be practical: it includes policy language, metrics, and references to external standards (see [References and Further Reading](#references-and-further-reading)). Detailed control-by-control mappings to OWASP MCP Top 10, OWASP LLM Top 10, NIST AI RMF, ISO 42001, and SOC 2 are in the companion [framework-mapping.md](framework-mapping.md) document. External source URLs are in [reference.md](reference.md).
 
 ---
 
@@ -2052,8 +2052,8 @@ These sources inform the controls and language used throughout this guide. Secur
 | [MCP Security Best Practices](https://modelcontextprotocol.io/docs/tutorials/security/security_best_practices)                                              | Official guidance on confused deputy, token passthrough, session security, and authorization design          |
 | [OWASP MCP Top 10](https://owasp.org/www-project-mcp-top-10/)                                                                      | Top ten MCP-specific risks; see [Formal Control Catalog](#formal-control-catalog) for evidence requirements  |
 | [OWASP Top 10 for LLM Applications](https://owasp.org/www-project-top-10-for-large-language-model-applications/)                   | LLM risks that intersect with MCP: prompt injection, excessive agency, supply chain                          |
-| [NIST AI Risk Management Framework (AI RMF 1.0)](https://www.nist.gov/itl/ai-risk-management-framework)                            | Govern, Map, Measure, Manage functions: use [reference.md](reference.md) to build organizational mappings    |
-| [ISO/IEC 42001:2023](https://www.iso.org/standard/81230.html)                                                                      | AI management system standard: useful for organizations building formal AI governance programs               |
+| [NIST AI Risk Management Framework (AI RMF 1.0)](https://www.nist.gov/itl/ai-risk-management-framework)                            | Govern, Map, Measure, Manage functions: see [framework-mapping.md](framework-mapping.md)                     |
+| [ISO/IEC 42001:2023](https://www.iso.org/standard/81230.html)                                                                      | AI management system standard: see [framework-mapping.md](framework-mapping.md)                              |
 | [Awesome Agentic MCP Security List](https://github.com/vermava/awesome-agentic-mcp-security)                                       | Curated tools, research, and community guidance as the MCP landscape evolves                                 |
 | [MCP CVE Project](https://github.com/vermava/mcp-cve-project)                                                                      | Real-world MCP failure patterns for threat modeling and vendor review                                        |
 
@@ -2094,3 +2094,7 @@ Use this checklist to assess readiness before presenting MCP governance to execu
 - [ ] RACI matrix published with named individuals, not just role titles
 - [ ] Monthly metrics dashboard planned
 - [ ] Incident response playbook aligned for MCP scenarios
+
+---
+
+[Guide Home](README.md) · [Framework Mapping](framework-mapping.md) · [Reference Links](reference.md)
