@@ -1862,9 +1862,9 @@ The reviewer's job shifts from "gather evidence" to "judge evidence". That is th
 
 This section extends controls already in the Formal Control Catalog:
 
-- **MCP-08 (Lack of Audit and Telemetry)**: the logging sample and SIEM integration requirements are the foundation; automation makes them continuously verifiable.
+- **MCP-05 (Audit logging with required fields)**: the logging sample and SIEM integration requirements are the foundation; automation makes them continuously verifiable.
+- **MCP-09 (Provenance and SBOM review for external servers)**: SBOM and dependency CVE scans are re-run on a schedule and appended to the evidence pack, so version drift is visible rather than assumed unchanged.
 - **MCP-13 (Tool output treated as untrusted input)**: output-handling review artifacts are captured the same continuous way as other evidence, so the optional review does not expire between cycles.
-- **MCP-04 (Supply chain)**: SBOM and dependency CVE scans are re-run on a schedule and appended to the evidence pack, so version drift is visible rather than assumed unchanged.
 
 Organizations with an existing GRC or audit platform can treat these records as evidence sources; the framework does not prescribe a specific tool. The requirement is that evidence is produced continuously, attributed, and tamper-evident, regardless of where it is stored.
 
